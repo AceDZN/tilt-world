@@ -64,12 +64,30 @@ export function declination(L: number): number {
   return Math.asin(Math.sin(TILT * D2R) * Math.sin(L * D2R)) * R2D;
 }
 
+/**
+ * Calendar anchors (day of year, 0 = 1 January) for L = 0, 90, 180, 270, 360: Workbook's key dates
+ * 21 March, 21 June, 23 September, 22 December. The seasons are unequal, so the map is
+ * piecewise-linear inside each quarter.
+ */
+const L_ANCHORS = [79, 171, 265, 355, 444];
+
 export function dayOfYearFromL(L: number): number {
-  return (EQUINOX_DAY + (wrap360(L) / 360) * YEAR_DAYS) % YEAR_DAYS;
+  const l = wrap360(L);
+  const q = Math.min(3, Math.floor(l / 90));
+  const a = L_ANCHORS[q];
+  const b = L_ANCHORS[q + 1];
+  return (a + ((l - q * 90) / 90) * (b - a)) % 365;
 }
 
 export function lFromDayOfYear(day: number): number {
-  return wrap360(((day - EQUINOX_DAY) / YEAR_DAYS) * 360);
+  let d = ((day % 365) + 365) % 365;
+  if (d < L_ANCHORS[0]) d += 365;
+  for (let q = 0; q < 4; q++) {
+    const a = L_ANCHORS[q];
+    const b = L_ANCHORS[q + 1];
+    if (d >= a && d < b) return wrap360(q * 90 + ((d - a) / (b - a)) * 90);
+  }
+  return 0;
 }
 
 const MONTH_DAYS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
@@ -123,7 +141,7 @@ export function solarTimeDifference(lonA: number, lonB: number): number {
 
 /** Simplified civil time zone: 15° bands centred on multiples of 15°. */
 export function civilZone(lon: number): number {
-  return Math.round(wrap180(lon) / DEG_PER_HOUR);
+  return Math.round(wrap180(lon) / DEG_PER_HOUR) || 0;
 }
 
 /**

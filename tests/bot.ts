@@ -1,6 +1,6 @@
 // A scripted player that drives the sim only through Input, like the keyboard does.
-import { angularDistance, wrap180 } from '../src/astro/astro';
-import { createSim, facingAzimuth, latLon, shotCtx, step, type SimState } from '../src/game/sim';
+import { angularDistance, localSolarTime, moonPosition, sunPosition, wrap180, wrap24 } from '../src/astro/astro';
+import { createSim, facingAzimuth, latLon, moonAgeAt, orbitL, shotCtx, step, ticketChoices, type SimState } from '../src/game/sim';
 import { getLevel } from '../src/game/levels';
 import { NO_INPUT, type Input, type ShotCtx } from '../src/game/types';
 
@@ -38,9 +38,11 @@ export class Bot {
       if (!this.alive) return false;
       const h = this.here();
       if (angularDistance(h.lat, h.lon, lat, lon) <= tol) return true;
+      const d = angularDistance(h.lat, h.lon, lat, lon);
       const b = bearing(h.lat, h.lon, lat, lon);
       const diff = wrap180(b - facingAzimuth(this.st));
-      this.tick({ turn: Math.max(-1, Math.min(1, diff / 15)), forward: Math.abs(diff) < 70 ? 1 : 0.1, ...extra });
+      const slow = Math.min(1, Math.max(0.05, d / 1.5));
+      this.tick({ turn: Math.max(-1, Math.min(1, diff / 15)), forward: Math.abs(diff) < 20 ? slow : 0, ...extra });
     }
     return false;
   }
@@ -59,14 +61,49 @@ export class Bot {
   faceMoon() {
     return this.face(this.ctx().moon.azimuth);
   }
-  /** Wait (optionally fast-forwarding) until pred is true. */
-  waitUntil(pred: (c: ShotCtx, st: SimState) => boolean, ff = true, maxSec = 300): boolean {
+  /** Wait at the clock's own pace until pred is true. */
+  waitUntil(pred: (c: ShotCtx, st: SimState) => boolean, maxSec = 300): boolean {
     for (let i = 0; i < maxSec / DT; i++) {
       if (!this.alive) return false;
       if (pred(this.ctx(), this.st)) return true;
-      this.tick({ fastForward: ff });
+      this.tick();
     }
     return false;
+  }
+  /** Commit a sleep of this many hours. */
+  sleep(hours: number) {
+    this.tick({ sleep: hours });
+  }
+  /** Sleep until shortly before a local solar time here (whole quarter hours), then let the clock run. */
+  sleepToLocal(local: number, early = 0.25) {
+    const h = Math.floor((wrap24(local - this.ctx().localTime) - early) * 4) / 4;
+    if (h > 0) this.sleep(h);
+  }
+  /** Sky at this spot `dh` hours from now (prediction only; the sim is not touched). */
+  skyIn(dh: number) {
+    const { lat, lon } = this.here();
+    const utc = this.st.utc + dh;
+    const L = orbitL(this.st.level, utc);
+    const age = moonAgeAt(this.st.level, utc);
+    return {
+      utc,
+      L,
+      age,
+      local: localSolarTime(utc, lon),
+      sun: sunPosition(lat, lon, utc, L, this.st.spin),
+      moon: moonPosition(lat, lon, utc, L, age),
+    };
+  }
+  /** First whole-hour offset (≥ from) at which pred holds, or -1. */
+  findHour(pred: (s: ReturnType<Bot['skyIn']>) => boolean, from = 1, to = 24 * 40, stepH = 1): number {
+    for (let h = from; h <= to; h += stepH) if (pred(this.skyIn(h))) return h;
+    return -1;
+  }
+  tickets() {
+    return ticketChoices(this.st);
+  }
+  ticket(i: number) {
+    this.tick({ ticket: i });
   }
   shoot() {
     this.tick({ shoot: true });
