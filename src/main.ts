@@ -7,6 +7,7 @@ import './ui/style.css';
 import * as THREE from 'three';
 import { dateLabel, dayOfYearFromL, lFromDayOfYear, localDayIndex, phaseIndex, PHASE_NAMES, shadowLength, sunPosition, wrap180, wrap24 } from './astro/astro';
 import { LEVELS, getLevel } from './game/levels';
+import { verifiedQuest } from './game/quests';
 import { atStation, orbitL, createSim, facingAzimuth, latLon, shotCtx, step, ticketChoices, type SimEvent, type SimState } from './game/sim';
 import { NO_INPUT, type Input, type LevelDef } from './game/types';
 import { loadModels } from './scene/models';
@@ -139,7 +140,19 @@ function showMenu() {
 }
 
 function startLevel(id: number) {
-  const level = getLevel(id);
+  startLevelDef(getLevel(id));
+}
+
+let questSeed = 0;
+function startQuest() {
+  questSeed = (questSeed || Math.floor(Math.random() * 90000)) + 1;
+  const q = verifiedQuest(questSeed);
+  questSeed = q.seed;
+  startLevelDef(q.level);
+}
+
+function startLevelDef(level: LevelDef) {
+  const id = level.id;
   st = createSim(level);
   screen = 'play';
   paused = false;
@@ -199,13 +212,17 @@ function onAction(a: HudAction, arg?: number) {
       toggleFullscreen();
       break;
     case 'restart':
-      if (st) startLevel(st.level.id);
+      if (st) startLevelDef(st.level);
+      break;
+    case 'quest':
+      startQuest();
       break;
     case 'menu':
       showMenu();
       break;
     case 'next':
-      if (st && st.level.id < LEVELS.length) startLevel(st.level.id + 1);
+      if (st && st.level.id >= 100) startQuest();
+      else if (st && st.level.id < LEVELS.length) startLevel(st.level.id + 1);
       else showMenu();
       break;
     case 'level':
@@ -307,7 +324,7 @@ function handleKeys() {
     if (k === 'm') onAction('mute');
     if (k === 'f') toggleFullscreen();
     if (k === 'r') {
-      startLevel(st.level.id);
+      startLevelDef(st.level);
       continue;
     }
     if (!started) {
@@ -459,9 +476,10 @@ function showResult() {
   } else if (st.mode === 'won') {
     if (captureWin) render();
     const lvl = st.level;
-    const prev = saved.stars[lvl.id] ?? 0;
-    saved.stars[lvl.id] = Math.max(prev, st.stars);
-    persist();
+    if (lvl.id < 100) {
+      saved.stars[lvl.id] = Math.max(saved.stars[lvl.id] ?? 0, st.stars);
+      persist();
+    }
     const par = lvl.parCommits ?? 99;
     const commits = st.ticketsUsed + st.sleeps;
     const lines = [
@@ -471,7 +489,7 @@ function showResult() {
         ? `★ תכנון חסכוני (${commits === 0 ? 'בלי שינה וכרטיסים' : `${commits} התחייבויות`}${st.misses ? ', פספוס אחד' : ''})`
         : `☆ כוכב שלישי: עד פספוס אחד ועד ${par} שינות/כרטיסים (היו ${st.misses} פספוסים, ${commits})`,
     ];
-    hud.showWin(lvl, st.stars, lines, lvl.id < LEVELS.length);
+    hud.showWin(lvl, st.stars, lines, lvl.id < LEVELS.length || lvl.id >= 100);
     const photo = document.getElementById('winPhoto');
     if (photo && winPhoto) photo.style.backgroundImage = `url(${winPhoto})`;
   }

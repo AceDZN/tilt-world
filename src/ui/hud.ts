@@ -28,7 +28,8 @@ export type HudAction =
   | 'reduced'
   | 'camera'
   | 'fullscreen'
-  | 'start';
+  | 'start'
+  | 'quest';
 
 const b = (n: number | string) => `<bdi dir="ltr">${n}</bdi>`;
 export const hhmm = (h: number) => {
@@ -170,6 +171,7 @@ export class Hud {
       <header><h1>עולם נטוי</h1><p class="sub">צילה, רובוטית צילום סולארית, אוספת תמונות מכל העולם. היא לא יכולה לסובב את כדור הארץ — רק לרוץ, לישון, ולקנות כרטיס לכיוון אחד.</p>
       <p class="sub small">כוכבים: ${b(`${total} / ${LEVELS.length * 3}`)} · צפון תמיד למעלה, מזרח מימין במפה</p></header>
       <div class="worlds">${worlds}</div>
+      <div class="questrow"><button class="go" data-a="quest">🎲 משימת צילום אקראית</button><span class="small sub">משימות חדשות בכל פעם — כל אחת נבדקה שיש לה פתרון</span></div>
       <footer><button class="ghost" data-a="reduced" id="reducedBtn">תנועה מופחתת</button><button class="ghost" data-a="mute">צליל</button><button class="ghost" data-a="fullscreen">מסך מלא</button></footer>`;
     this.els.menu.hidden = false;
   }
@@ -193,7 +195,7 @@ export class Hud {
   setLevel(level: LevelDef, best: number) {
     this.level = level;
     this.els.hud.hidden = false;
-    this.els.lvltitle.innerHTML = `שלב ${b(level.id)}: ${esc(level.title)}`;
+    this.els.lvltitle.innerHTML = level.id >= 100 ? esc(level.title) : `שלב ${b(level.id)}: ${esc(level.title)}`;
     this.els.lvlstars.innerHTML = stars(best);
     this.closeModals();
     this.els.insetFrame.hidden = level.world === 1;
@@ -398,11 +400,11 @@ export class Hud {
   showWin(level: LevelDef, nStars: number, lines: string[], hasNext: boolean) {
     this.els.result.innerHTML = `
       <div class="panel result win">
-        <div class="polaroid"><div class="photo" id="winPhoto"></div><div class="cap">שלב ${b(level.id)}: ${esc(level.title)}</div></div>
+        <div class="polaroid"><div class="photo" id="winPhoto"></div><div class="cap">${level.id >= 100 ? esc(level.title) : `שלב ${b(level.id)}: ${esc(level.title)}`}</div></div>
         <div class="bigstars">${stars(nStars)}</div>
         <ul class="why">${lines.map((l) => `<li>${l}</li>`).join('')}</ul>
         <p class="rule"><strong>הכלל:</strong> ${esc(level.rule)}</p>
-        <div class="row">${hasNext ? `<button class="go" data-a="next">לשלב הבא ←</button>` : ''}<button class="ghost" data-a="restart">שוב</button><button class="ghost" data-a="menu">לתפריט</button></div>
+        <div class="row">${hasNext ? `<button class="go" data-a="next">${level.id >= 100 ? 'משימה חדשה' : 'לשלב הבא'} ←</button>` : ''}<button class="ghost" data-a="restart">שוב</button><button class="ghost" data-a="menu">לתפריט</button></div>
       </div>`;
     this.els.result.hidden = false;
     this.els.result.querySelector<HTMLElement>('.go')?.focus();
@@ -411,11 +413,11 @@ export class Hud {
   showIntro(level: LevelDef) {
     const extra: string[] = [];
     if (level.sleep) extra.push(`🛏️ תא שינה (${b('Z')}): בוחרים מראש כמה לישון — אי אפשר לבטל.`);
-    if (level.tickets) extra.push(`🚂 רכבת הלוח (${b('C')}, בתחנה): ${b(level.tickets.count)} כרטיסים לכיוון אחד.`);
+    if (level.tickets) extra.push(`🚂 רכבת הלוח (${b('C')}, בתחנה): ${level.tickets.count === 1 ? 'כרטיס אחד' : `${b(level.tickets.count)} כרטיסים`} לכיוון אחד.`);
     if (level.rails?.length) extra.push(`🧲 מגפיים מגנטיות: קפיצה (${b('Space')}) על קו רוחב מסומן = גלישה מהירה.`);
     this.els.result.innerHTML = `
       <div class="panel intro">
-        <div class="kicker">שלב ${b(level.id)} · ${esc(WORLDS[level.world - 1].title)}</div>
+        <div class="kicker">${level.id >= 100 ? 'משימה אקראית' : `שלב ${b(level.id)}`} · ${esc(WORLDS[level.world - 1].title)}</div>
         <h3>${esc(level.title)}</h3>
         <p class="why">${esc(level.brief)}</p>
         ${extra.length ? `<ul class="tips">${extra.map((e) => `<li>${e}</li>`).join('')}</ul>` : ''}

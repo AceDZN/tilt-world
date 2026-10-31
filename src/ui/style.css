@@ -165,3 +165,5 @@ bdi { unicode-bidi: isolate; }
 .intro .why { text-align: center; }
 .intro .tips { list-style: none; padding: 0; margin: 8px auto; max-width: 520px; color: var(--muted); font-size: 15px; line-height: 1.6; }
 .nodeico { width: 64px; background: #1a2350; border-radius: 8px; }
+.questrow { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 18px auto 0; }
+.questrow .go { font-size: 19px; }
