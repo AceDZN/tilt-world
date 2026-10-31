@@ -43,7 +43,7 @@ Serves the build at http://localhost:4242.
 npm run shots
 ```
 
-Recaptures `docs/visual-review/` (needs the dev server).
+Recaptures the review frames into `scratch/visual-review/` (local only, git-ignored; needs the dev server).
 
 URL options: `?level=N` opens level N directly; `?all` unlocks every level.
 

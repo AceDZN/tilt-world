@@ -1,6 +1,6 @@
 # Visual review — real captures vs. mockups
 
-Real frames are in `docs/visual-review/`, captured by `npm run shots` (`scripts/shots.mjs`, Playwright + headless Chromium/SwiftShader at 1672×941, the mockups' size). Every frame is a reachable game state: the script drives the live sim with the same scripted player the tests use (`tests/bot.ts`), only through `Input` (run, turn, sleep, ticket). The mockups are in `docs/visual-targets/` (provenance in `PROMPTS.md`). They are mood targets from an image model, not specs; the game's astronomy wins where they disagree.
+Real frames are captured locally into `scratch/visual-review/` (git-ignored: screenshots are never committed) by `npm run shots` (`scripts/shots.mjs`, Playwright + headless Chromium/SwiftShader at 1672×941, the mockups' size). Every frame is a reachable game state: the script drives the live sim with the same scripted player the tests use (`tests/bot.ts`), only through `Input` (run, turn, sleep, ticket). The mockups are in `docs/visual-targets/` (provenance in `PROMPTS.md`). They are mood targets from an image model, not specs; the game's astronomy wins where they disagree.
 
 | # | Mockup | Real frame | Level / state |
 |---|--------|------------|---------------|

@@ -5,7 +5,8 @@ import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
 
 const BASE = process.env.BASE ?? 'http://localhost:5242/';
-const OUT = 'docs/visual-review';
+// screenshots never go in the repo: scratch/ is git-ignored
+const OUT = process.env.OUT ?? 'scratch/visual-review';
 mkdirSync(OUT, { recursive: true });
 
 const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });

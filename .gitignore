@@ -8,3 +8,6 @@ scratch/
 assets-src/nasa/
 assets-src/tripo/fuji_raw.glb
 assets-src/tripo/greenhouse_raw.glb
+# screenshots and captures stay local, never in the repo
+*.png
+!docs/visual-targets/*.png

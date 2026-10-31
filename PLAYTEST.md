@@ -5,7 +5,7 @@
 **Method:**
 - Playwright drove headless Chromium with real keyboard events (W/A/D/Space/E/Z/C/P/Q/X/1-3, Enter, Esc). I also clicked the train cards and the sleep-picker buttons with the mouse.
 - The page ran in real time. I didn't use `advanceTime`.
-- Screenshots are at 1280×720, plus a 390×844 phone pass. They're in `docs/playtest/`.
+- Screenshots are at 1280×720, plus a 390×844 phone pass. They stay local in `scratch/playtest/` (git-ignored; screenshots are never committed).
 - I read `src/game/levels.ts`, `tests/levels.test.ts` and `docs/curriculum/REVIEW.md` only after honest attempts at L12, L17 and L18. I note below wherever a solve depended on them.
 
 **Caveats:**
@@ -75,7 +75,7 @@ But two things undercut it:
   - L2: the sleep dialog advanced 06:12 → 06:20 while open.
   - L15: each sleep drifted about 30 min, which pushed two shots into the dawn sky.
 - REVIEW.md "L10: …every ticket lands before noon … fine" assumes the ticket is instant. A bot with no UI never sees the drift.
-- Screenshots: `docs/playtest/l10-train.png`, `docs/playtest/l10-dec.png`, `docs/playtest/l2-sleep-ui.png`
+- Screenshots: `scratch/playtest/l10-train.png`, `scratch/playtest/l10-dec.png`, `scratch/playtest/l2-sleep-ui.png`
 - **Fix:**
   - Freeze the sim while any commitment modal is open. Esc pause already freezes the clock correctly.
   - Land the train at exactly the departure clock time.
@@ -87,7 +87,7 @@ But two things undercut it:
   - The shadow actually touches the Earth about 14–17 h later, over the Pacific near 10°N 170°E. A student will conclude the ticket was wrong, and with 2 tickets the run is over.
   - L18: on the eclipse night, at UTC about 5.7, just before the eclipse window, the text reads "ירח מלא — אבל הוא עובר מעל או מתחת לצל של כדור הארץ".
   - Cause: `solarEclipseCenter()` and `lunarEclipse()` return null or false, and the code treats "not this instant" as "not this month".
-- Screenshots: `docs/playtest/l17-oct19.png`, `docs/playtest/l17-try1.png`
+- Screenshots: `scratch/playtest/l17-oct19.png`, `scratch/playtest/l17-try1.png`
 - **Fix:** when |β| is inside the eclipse limit but there's no shadow right now, say so. Suggested lines:
   - "זה המולד הנכון — אבל הצל עוד לא נוגע בכדור הארץ. ישני כמה שעות וחפשי אותו בצד היום."
   - "הליקוי עוד לא התחיל / כבר נגמר."
@@ -99,9 +99,9 @@ But two things undercut it:
   - The space view (V) always centres on Tzila, so the night side and the far side are never shown.
   - The umbra isn't drawn on the globe or in the orbit inset.
   - H only toggles the latitude/longitude grid.
-  - I scanned 36 h in 3-hour steps and saw no shadow (`docs/playtest/l17-scan-*.png`).
+  - I scanned 36 h in 3-hour steps and saw no shadow (`scratch/playtest/l17-scan-*.png`).
   - I solved it only by computing `solarEclipseCenter` from `astro.ts`.
-- Screenshots: `docs/playtest/l17-aug21-space.png`, `docs/playtest/l17-hint.png`
+- Screenshots: `scratch/playtest/l17-aug21-space.png`, `scratch/playtest/l17-hint.png`
 - **Fix:**
   - Draw the umbra as a dark disc on the globe whenever it exists.
   - Let V rotate freely, or add a "where is the shadow?" arrow on the compass.
@@ -110,14 +110,14 @@ But two things undercut it:
 **P1-4. Targets you can't see or find (labels, off-screen places, L12 surfaces).**
 - Evidence:
   - Place labels are translucent grey pills that disappear against terrain, clouds or space:
-    - "דאקה", `docs/playtest/l4-at-dhaka.png`;
-    - "סמואה האמריקנית", `docs/playtest/l5-end.png`;
-    - "החרמון" and "תחנת רכבת הלוח", `docs/playtest/l6-hermon.png`;
-    - "תל אביב: אספלט", `docs/playtest/l12-start.png`;
-    - "גבעת המצפה", hidden behind Tzila's head in `docs/playtest/l2-dream.png`.
+    - "דאקה", `scratch/playtest/l4-at-dhaka.png`;
+    - "סמואה האמריקנית", `scratch/playtest/l5-end.png`;
+    - "החרמון" and "תחנת רכבת הלוח", `scratch/playtest/l6-hermon.png`;
+    - "תל אביב: אספלט", `scratch/playtest/l12-start.png`;
+    - "גבעת המצפה", hidden behind Tzila's head in `scratch/playtest/l2-dream.png`.
   - Nothing points to off-screen targets, neither on the compass nor in the space view.
   - In L12 the brief lists "שלג, לבה כהה, יער, אספלט", but the snow is in the Alps and the lava is in Iceland. Nothing on screen says so, and I gave up and read `levels.ts`.
-  - One label even overlaps the compass's "מזרח" (`docs/playtest/l12-start.png`).
+  - One label even overlaps the compass's "מזרח" (`scratch/playtest/l12-start.png`).
 - **Fix:**
   - Make labels opaque with a 2px outline, always drawn on top, and at least 14px.
   - Add edge-of-screen arrows and a compass tick for every place in the current brief.
@@ -128,7 +128,7 @@ But two things undercut it:
   - The intro card and toasts never mention W/E.
   - The battery goes 18% → 0% in about 6 s idle (about 2.5 s if you run the wrong way).
   - The failure line itself is good: "השחר זז רק 15° בשעה, והסוללה נגמרה לפני שהגיע אלייך. ריצה מזרחה, לקראתו, מקדימה את הזריחה."
-- Screenshots: `docs/playtest/l1-start.png`, `docs/playtest/l1-fail-idle.png`, `docs/playtest/phone-l1-fail.png`
+- Screenshots: `scratch/playtest/l1-start.png`, `scratch/playtest/l1-fail-idle.png`, `scratch/playtest/phone-l1-fail.png`
 - **Fix:**
   - Put "W / ↑ ריצה · A/D פנייה · E צילום" on the L1 intro card, and show it as the first toast. On phone, use "ג'ויסטיק לריצה · 📷 לצילום".
   - Start the battery drain on the first movement, or give 15–20 s of reserve.
@@ -145,17 +145,17 @@ But two things undercut it:
   - `+179 ימים` renders as `179+ ימים` (all train cards);
   - `20–40 ס"מ` renders as `40–20 ס"מ` (L16 rule).
 - I confirmed with a plain Chromium RTL test that the logical string "15° בשעה" renders as "°15". REVIEW D4 couldn't check the renderer, so this answers it.
-- Screenshots: `docs/playtest/l4-start.png`, `docs/playtest/l14-end.png`, `docs/playtest/l16-end.png`, `docs/playtest/l6-train-ui.png`
+- Screenshots: `scratch/playtest/l4-start.png`, `scratch/playtest/l14-end.png`, `scratch/playtest/l16-end.png`, `scratch/playtest/l6-train-ui.png`
 - **Fix:** wrap every number+unit, time, signed number and range in `<bdi dir="ltr">`, or append U+200E after `°`, `+N` and `N–M` in `hud.ts` at render time.
 
 **P2-2. Hebrew agreement errors and broken strings.**
 - `🚂 רכבת הלוח (C, בתחנה): 1 כרטיסים לכיוון אחד.` (L6 intro). Should be "כרטיס אחד לכיוון אחד".
-- `צילה ישנה 1 שעות…` (sleep toast, `docs/playtest/l15-p4.png`). Should be "שעה אחת".
+- `צילה ישנה 1 שעות…` (sleep toast, `scratch/playtest/l15-p4.png`). Should be "שעה אחת".
 - `★ תכנון חסכוני (1 התחייבויות)` (L2 end). Should be "התחייבות אחת".
 - `☆ כוכב שלישי: … (היו 0 פספוסים, 4)` (L16). The "4" has no noun; should be "4 שינות/כרטיסים".
 - `כרטיס ך` (L10 tickets): a final kaf used as the 11th letter, out of order before `כ`. Should be "יא, יב", or plain numbers.
 - **Fix:** a `plural(n, one, many)` helper for שעה/יום/כרטיס/התחייבות, and Hebrew numerals that use the standard sequence.
-- Screenshot: `docs/playtest/l2-end.png`
+- Screenshot: `scratch/playtest/l2-end.png`
 
 **P2-3. Movement is too fast for small targets.**
 - Running is about 12° of latitude per second (L12), and a 20 ms tap moves 0.2°.
@@ -172,7 +172,7 @@ But two things undercut it:
 - The page arrows are subtle, and the answers often sit on hidden pages: L6's 21 Jan and L17's 19 Oct are both on page 2.
 - The node and sun diagrams in L17 are 64px. I misread 21 Aug as "on the line" and burned a ticket.
 - L10 claims "בלי שמות חודשים", but the orbit inset at top-left prints "22 ביולי".
-- Screenshots: `docs/playtest/l10-train.png`, `docs/playtest/l17-train.png`, `docs/playtest/l18-train.png`
+- Screenshots: `scratch/playtest/l10-train.png`, `scratch/playtest/l17-train.png`, `scratch/playtest/l18-train.png`
 - **Fix:**
   - Sort the cards by "+days".
   - Show all cards in a scrollable row or grid, with a "1/3" page indicator.
@@ -181,8 +181,8 @@ But two things undercut it:
   - Hide the inset's date label in L10 and L18.
 
 **P2-5. The camera never looks up, so the moon and the eclipse are out of frame.**
-- In L15 and L18 the moon at 40–70° elevation is above the top of the screen while Tzila faces it (`docs/playtest/l15-p4.png`, `docs/playtest/l18-eclipse.png`). The shot is accepted, but the player never sees the phase they photographed.
-- In L17 the camera flips to the sky and the eclipsed sun is cut off at the top edge (`docs/playtest/l17-pacific.png`).
+- In L15 and L18 the moon at 40–70° elevation is above the top of the screen while Tzila faces it (`scratch/playtest/l15-p4.png`, `scratch/playtest/l18-eclipse.png`). The shot is accepted, but the player never sees the phase they photographed.
+- In L17 the camera flips to the sky and the eclipsed sun is cut off at the top edge (`scratch/playtest/l17-pacific.png`).
 - **Fix:** when the camera faces a sky target within about 30°, tilt the camera up to frame it, or show a sky inset (as Q does for the sun) with the moon's phase drawn.
 
 **P2-6. Sleep picker.**
@@ -190,13 +190,13 @@ But two things undercut it:
 - Steps are 1 h up to 24 (16 presses for 22 h).
 - Days and hours need two separate sleeps, which counts as two commitments.
 - The displayed number lags rapid presses.
-- Screenshots: `docs/playtest/l15-sleep-ui.png` and the phone version `docs/playtest/phone-l15-sleep.png`
+- Screenshots: `scratch/playtest/l15-sleep-ui.png` and the phone version `scratch/playtest/phone-l15-sleep.png`
 - **Fix:** use `+` / `−` buttons, quick chips (1, 3, 6, 12 h; 1, 3, 7 days), and one "N days and M hours" commit.
 
 **P2-7. L16: no tide information before crossing.**
 - Stepping onto the causeway at the wrong time fails within 0.5 s and restarts the level.
 - The tide gauge ("מד הגאות") appears only on the Tel Aviv shots.
-- Screenshots: `docs/playtest/l16-start.png`, `docs/playtest/l16-blocked.png`
+- Screenshots: `scratch/playtest/l16-start.png`, `scratch/playtest/l16-blocked.png`
 - **Fix:**
   - Show a tide gauge at the mainland ring and draw water visibly over the path.
   - Make the first wet step push Tzila back with "המים עולים!" rather than ending the run. End the run only if she stays.
@@ -210,7 +210,7 @@ But two things undercut it:
 - The order card overlaps the compass and covers its "מזרח →" label. In L15 the 9-line order card covers the whole HUD column.
 - The bottom action chips (Z, X, H, V) sit on top of the joystick ring.
 - Keyboard letters (Enter, Z, H, V, X) are shown on touch.
-- Screenshots: `docs/playtest/phone-l15-hud.png`, `docs/playtest/phone-l12-hud.png`, `docs/playtest/phone-l1-intro.png`
+- Screenshots: `scratch/playtest/phone-l15-hud.png`, `scratch/playtest/phone-l12-hud.png`, `scratch/playtest/phone-l1-intro.png`
 - **Fix:**
   - On narrow screens, collapse the order card to the title plus progress, and tap to expand.
   - Move the chips above the shutter, clear of the joystick.
@@ -219,18 +219,18 @@ But two things undercut it:
 **P2-10. L2 dream breaks "time only moves forward".**
 - After the sunset shot the clock shows 03:49 on 21 Mar (earlier than 17:47 that day). After the tripod, 22 Mar "10:45" with the sun on the horizon.
 - The banner duplicates the toast, and it covers Tzila and the "גבעת המצפה" label.
-- Screenshot: `docs/playtest/l2-dream.png`
+- Screenshot: `scratch/playtest/l2-dream.png`
 - **Fix:** hide the clock during the dream (or show "חלום"), and show only the banner.
 
 ### P3: polish
 
 - **P3-1. End and failure cards overlap the order card's right edge, so text is cut off.**
-  - Screenshots: `docs/playtest/l12-glacier.png`, `docs/playtest/l14-end.png`
+  - Screenshots: `scratch/playtest/l12-glacier.png`, `scratch/playtest/l14-end.png`
   - **Fix:** hide or dim the order card under modals, or narrow the modal.
-- **P3-2. Completed objectives with result notes use red/orange strikethrough**, which reads as an error ("בעולם ההפוך…השמש זרחה במערב!" in `docs/playtest/l2-end.png`).
+- **P3-2. Completed objectives with result notes use red/orange strikethrough**, which reads as an error ("בעולם ההפוך…השמש זרחה במערב!" in `scratch/playtest/l2-end.png`).
   - **Fix:** green, no strikethrough on the note.
 - **P3-3. The L16 failure card's icon is 💤 for a wave.**
-  - Screenshot: `docs/playtest/l16-blocked.png`
+  - Screenshot: `scratch/playtest/l16-blocked.png`
   - **Fix:** 🌊.
 - **P3-4. The L14 failure line "נשארת מצפון לחוג הקוטב (70°)" reads as if the circle is at 70°.**
   - **Fix:** "נשארת בקו רוחב 70°, מצפון לחוג הקוטב (66.5°)…".
@@ -242,14 +242,14 @@ But two things undercut it:
 
   The sleep pod's 1-hour minimum can't close sub-hour gaps. **Fix:** allow 15-minute sleep steps, or run the clock about 2× when Tzila stands still with nothing to do.
 - **P3-6. H in L1, L4 and L17 only shows the grid, with no text.** A 13-year-old won't read the grid as advice.
-  - Screenshots: `docs/playtest/l1-hint.png`, `docs/playtest/l4-hint.png`
+  - Screenshots: `scratch/playtest/l1-hint.png`, `scratch/playtest/l4-hint.png`
   - **Fix:** a one-line hint toast with each overlay.
 - **P3-7. L5: no fireworks are drawn** at 20:00 in Fiji or Samoa.
-  - Screenshot: `docs/playtest/l5-fiji-fireworks.png`
+  - Screenshot: `scratch/playtest/l5-fiji-fireworks.png`
 - **P3-8. Clock date and inset date disagree around midnight** (HUD 22 June 00:01, inset 21 June).
-  - Screenshot: `docs/playtest/l8-midnight.png`
+  - Screenshot: `scratch/playtest/l8-midnight.png`
 - **P3-9. End-card bullet list renders both "•" and "★".**
-  - Screenshot: `docs/playtest/l1-end.png`
+  - Screenshot: `scratch/playtest/l1-end.png`
 - **P3-10. L18, the finale, ends with only "שוב / לתפריט".** **Fix:** add a closing card or credits.
 - **P3-11. Test API: `render_game_to_text().date` disagrees with the HUD date after crossing longitudes** (Samoa: state says 1 Nov, HUD says 31 Oct). It also has no moon azimuth, so testers can't aim at the moon.
 
@@ -278,7 +278,7 @@ But two things undercut it:
 | P2 ticket cards | **Fixed** (diagram size unchanged) | Cards sorted soonest first, as many per page as fit (up to 6), and number keys follow the card order. Season icons go by orbit quadrant (Aug–Oct 🍂, Nov–Jan ❄, Feb–Apr ✿, May–Jul ☀). The page arrows no longer mirror. The L10 inset shows no date. |
 | P2 camera never tilts up | **Fixed** | World 4: standing still and facing a Moon more than 22° up, the camera looks up at it. Totality: it looks up at the eclipsed Sun. |
 | P2 sleep picker | **Fixed** | − / + and −6 / +6 buttons (forced LTR, so the labels don't mirror). In days mode, "ועוד N שעות" makes days plus hours one commitment. |
-| P2 phone layout | **Fixed** | Action chips stack on the right above the shutter, clear of the joystick. The order card keeps only the checklist (the brief was on the intro card) and stays out of the compass column. Waypoint chips stay inside the screen. See `docs/visual-review/08-phone-l12.png` and `09-phone-l15.png`. |
+| P2 phone layout | **Fixed** | Action chips stack on the right above the shutter, clear of the joystick. The order card keeps only the checklist (the brief was on the intro card) and stays out of the compass column. Waypoint chips stay inside the screen. See `scratch/visual-review/08-phone-l12.png` and `09-phone-l15.png`. |
 | P2 L16 no tide reading | **Fixed** | The clock pill shows a tide gauge: "🌊 −3.1 מ' ✔ השביל יבש" or "✖ השביל מוצף (נפתח מתחת ל--2.5)". |
 | P3-6 H shows only the grid | **Fixed** | H also shows the level's hint sentence for 6 s. |
 | P3-9 end card shows "•" and "★" | **Fixed** | The list has no bullets. |
