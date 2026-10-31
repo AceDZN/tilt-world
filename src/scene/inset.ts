@@ -20,8 +20,16 @@ export class OrbitInset {
     this.scene.add(this.sunLight);
     const sun = new THREE.Mesh(new THREE.SphereGeometry(1.5, 32, 16), new THREE.MeshBasicMaterial({ color: 0xffd060 }));
     this.scene.add(sun);
+    const c = document.createElement('canvas');
+    c.width = c.height = 128;
+    const g = c.getContext('2d')!;
+    const grad = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+    grad.addColorStop(0, 'rgba(255,200,90,0.9)');
+    grad.addColorStop(1, 'rgba(255,140,40,0)');
+    g.fillStyle = grad;
+    g.fillRect(0, 0, 128, 128);
     const glow = new THREE.Sprite(
-      new THREE.SpriteMaterial({ color: 0xffa040, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false }),
+      new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }),
     );
     glow.scale.setScalar(6);
     this.scene.add(glow);
@@ -31,15 +39,15 @@ export class OrbitInset {
     this.scene.add(orbit);
 
     this.earth = new THREE.Group();
-    const globe = new THREE.Mesh(new THREE.SphereGeometry(1.1, 32, 24), new THREE.MeshStandardMaterial({ map: dayTex, roughness: 0.9 }));
+    const globe = new THREE.Mesh(new THREE.SphereGeometry(1.5, 32, 24), new THREE.MeshStandardMaterial({ map: dayTex, roughness: 0.9 }));
     // Axis tilted toward +X in space (the Sun's direction at the June solstice, L = 90).
     const axisHolder = new THREE.Group();
     axisHolder.rotation.z = -TILT * D2R;
     axisHolder.add(globe);
-    const axis = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 3.4, 6), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    const axis = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 4.2, 6), new THREE.MeshBasicMaterial({ color: 0xffffff }));
     axisHolder.add(axis);
     const north = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.25, 8), new THREE.MeshBasicMaterial({ color: 0xff7070 }));
-    north.position.y = 1.8;
+    north.position.y = 2.2;
     axisHolder.add(north);
     this.earth.add(axisHolder);
     this.scene.add(this.earth);
@@ -55,8 +63,8 @@ export class OrbitInset {
     this.scene.add(this.nodeLine);
     this.scene.add(this.moonGroup);
 
-    this.camera.position.set(0, 17, 21);
-    this.camera.lookAt(0, -1.5, 0);
+    this.camera.position.set(0, 15, 19);
+    this.camera.lookAt(0, -1, 0);
   }
 
   /**

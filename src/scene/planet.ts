@@ -60,7 +60,7 @@ void main() {
   vec3 night = texture2D(nightTex, uv).rgb;
 
   float ndl = dot(n, normalize(sunDir));
-  float dayAmt = smoothstep(-0.105, 0.105, ndl);
+  float dayAmt = smoothstep(-0.06, 0.08, ndl);
   float ocean = smoothstep(0.02, 0.10, day.b - max(day.r, day.g) + 0.04) * (1.0 - smoothstep(0.35, 0.6, day.r));
 
   // seasonal snow on land

@@ -7,7 +7,7 @@ import './ui/style.css';
 import * as THREE from 'three';
 import { dateLabel, dayOfYearFromL, lFromDayOfYear, localDayIndex, phaseIndex, PHASE_NAMES, shadowLength, sunPosition, wrap180, wrap24 } from './astro/astro';
 import { LEVELS, getLevel } from './game/levels';
-import { atStation, createSim, facingAzimuth, latLon, shotCtx, step, ticketChoices, type SimEvent, type SimState } from './game/sim';
+import { atStation, orbitL, createSim, facingAzimuth, latLon, shotCtx, step, ticketChoices, type SimEvent, type SimState } from './game/sim';
 import { NO_INPUT, type Input, type LevelDef } from './game/types';
 import { loadModels } from './scene/models';
 import { World } from './scene/world';
@@ -150,6 +150,8 @@ function startLevel(id: number) {
   resultTimer = -1;
   tutorialT = 0;
   notes = {};
+  winPhoto = '';
+  captureWin = false;
   cameraMode = 'chase';
   gridOn = false;
   hud.hideMenu();
@@ -455,6 +457,7 @@ function showResult() {
     const why = [...st.events].reverse().find((e) => e.kind === 'fail')?.text ?? '';
     hud.showFail(FAIL_TITLES[st.fail?.kind ?? 'time'], why, st.level.rule);
   } else if (st.mode === 'won') {
+    if (captureWin) render();
     const lvl = st.level;
     const prev = saved.stars[lvl.id] ?? 0;
     saved.stars[lvl.id] = Math.max(prev, st.stars);
@@ -483,8 +486,8 @@ function fmtHours(h: number) {
 // ---------------------------------------------------------------- HUD info
 
 function localDateLabel(level: LevelDef, utc: number, lon: number) {
-  const day0 = Math.round(dayOfYearFromL(level.start.L) - level.start.utc / 24);
-  const d = day0 + localDayIndex(utc, wrap180(lon));
+  // The calendar date follows the orbit (as on the train tickets); across the date line it shifts by a day.
+  const d = Math.floor(dayOfYearFromL(orbitL(level, utc))) + localDayIndex(utc, wrap180(lon)) - localDayIndex(utc, 0);
   return dateLabel(lFromDayOfYear(d + 0.5));
 }
 
@@ -623,7 +626,7 @@ declare global {
   interface Window {
     render_game_to_text: () => string;
     advanceTime: (ms: number) => void;
-    tilt: { startLevel: (id: number) => void; press: (input: Partial<Input>) => void; state: () => SimState | null };
+    tilt: { startLevel: (id: number) => void; press: (input: Partial<Input>) => void; state: () => SimState | null; world: () => World };
   }
 }
 
@@ -667,6 +670,7 @@ window.tilt = {
   startLevel,
   press: (input) => Object.assign(pending, input),
   state: () => st,
+  world: () => world,
 };
 
 boot().catch((e) => {

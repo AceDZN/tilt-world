@@ -62,7 +62,7 @@ bdi { unicode-bidi: isolate; }
 .order em { font-style: normal; color: #b0521a; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
-.bubble { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.95); color: #1d2440; border-radius: 20px; padding: 10px 18px; font-size: 17px; font-weight: 600; display: flex; gap: 10px; align-items: center; max-width: min(48vw, 560px); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35); }
+.bubble { position: absolute; top: 28%; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.95); color: #1d2440; border-radius: 20px; padding: 10px 18px; font-size: 17px; font-weight: 600; display: flex; gap: 10px; align-items: center; max-width: min(48vw, 560px); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35); }
 .bubble-face { color: var(--accent); font-size: 22px; }
 
 .toast { position: absolute; bottom: 120px; left: 50%; transform: translateX(-50%); background: var(--navy); border: 2px solid var(--edge); border-radius: 16px; padding: 10px 20px; font-size: 18px; font-weight: 600; max-width: min(80vw, 620px); text-align: center; line-height: 1.4; }

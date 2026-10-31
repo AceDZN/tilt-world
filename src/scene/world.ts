@@ -80,7 +80,7 @@ export function labelSprite(text: string, color = '#ffffff', bg = 'rgba(14,20,48
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, depthTest: true, transparent: true }));
-  const hgt = 0.26;
+  const hgt = 0.15;
   s.scale.set((hgt * w) / 72, hgt, 1);
   s.renderOrder = 10;
   return s;
@@ -225,8 +225,6 @@ export class World {
 
     const t = instance('tzila', TZILA_H);
     this.tzila = t.obj;
-    // The rig's lens faces −Z; turn it so +Z (the sim heading) is her front.
-    this.tzila.children[0].rotation.y = Math.PI;
     this.player.add(this.tzila);
     if (t.animations.length) {
       this.mixer = new THREE.AnimationMixer(this.tzila);
@@ -287,13 +285,14 @@ export class World {
       let topH = 0.25;
       if (spec) {
         const m = instance(spec.model, spec.h).obj;
-        const off = Math.min(p.radius * 0.45, 0.6);
-        placeOnPlanet(m, p.lat + (p.kind === 'station' || p.kind === 'roof' || p.kind === 'hill' ? off : 0), p.lon, 200);
+        // Stand the landmark just inside the zone's far (north) edge so Tzila can walk up to it.
+        const off = p.kind === 'stones' ? 0 : Math.min(p.radius * 0.7, 2.2);
+        placeOnPlanet(m, p.lat + off, p.lon, 180);
         this.props.add(m);
         topH = spec.h;
         if (p.kind === 'station') {
           const booth = instance('ticket_booth', 0.42).obj;
-          placeOnPlanet(booth, p.lat - off * 0.4, p.lon + off, 200);
+          placeOnPlanet(booth, p.lat + off * 0.3, p.lon + off / Math.cos((p.lat * Math.PI) / 180), 230);
           this.props.add(booth);
         }
         if (p.kind === 'stones') {
@@ -306,7 +305,7 @@ export class World {
         this.props.add(this.procProp(p));
       }
       const label = labelSprite(p.name);
-      surfacePoint(p.lat, p.lon, topH + 0.35, label.position);
+      surfacePoint(p.lat + (spec && p.kind !== 'stones' ? Math.min(p.radius * 0.7, 2.2) : 0), p.lon, topH + 0.2, label.position);
       this.props.add(label);
     }
 
@@ -417,9 +416,19 @@ export class World {
     this.planet.uniforms.time.value = t;
     this.planet.cloudUniforms.spin.value = t * (view.reducedMotion ? 0 : 0.3);
     this.sunLight.position.copy(sun).multiplyScalar(60);
-    this.sunSprite.position.copy(sun).multiplyScalar(SUN_DIST);
     const md = moonDirection(utc, L, age);
-    this.moon.position.set(md.x, md.y, md.z).multiplyScalar(MOON_DIST);
+    const moonDir = new THREE.Vector3(md.x, md.y, md.z);
+    const here0 = new THREE.Vector3(st.pos.x, st.pos.y, st.pos.z);
+    if (view.cameraMode === 'chase') {
+      // On a planet this small the chase camera's horizon dips far below Tzila's. Draw the Sun and
+      // Moon against her local horizon, so "elevation 0" sits on the visible limb.
+      const anchor = here0.clone().multiplyScalar(PLANET_R);
+      this.sunSprite.position.copy(anchor).addScaledVector(skyDir(here0, sun, this.camera.position), SUN_DIST);
+      this.moon.position.copy(anchor).addScaledVector(skyDir(here0, moonDir, this.camera.position), MOON_DIST);
+    } else {
+      this.sunSprite.position.copy(sun).multiplyScalar(SUN_DIST);
+      this.moon.position.copy(moonDir).multiplyScalar(MOON_DIST);
+    }
 
     // eclipse
     const ecl = solarEclipseCenter(utc, L, age);
@@ -570,6 +579,19 @@ export class World {
     const { lat, lon } = latLon(st);
     return sunPosition(lat, lon, st.utc, st.L, st.spin).elevation;
   }
+}
+
+/** Direction to draw a sky body so its elevation is measured from the visible limb, not the true horizontal. */
+function skyDir(up: THREE.Vector3, dir: THREE.Vector3, cam: THREE.Vector3): THREE.Vector3 {
+  const u = up.clone().normalize();
+  const e = Math.asin(THREE.MathUtils.clamp(u.dot(dir), -1, 1));
+  const h = dir.clone().addScaledVector(u, -u.dot(dir));
+  if (h.lengthSq() < 1e-8) return dir.clone();
+  h.normalize();
+  const dip = Math.acos(Math.min(1, PLANET_R / Math.max(PLANET_R + 0.01, cam.length())));
+  // full dip at the horizon, fading to none at the zenith
+  const ev = e - 0.72 * dip * (1 - Math.abs(e) / (Math.PI / 2));
+  return h.multiplyScalar(Math.cos(ev)).addScaledVector(u, Math.sin(ev));
 }
 
 const snowCache = new Map<number, number>();
