@@ -161,7 +161,8 @@ export class World {
   planet: Planet;
   private sunLight = new THREE.DirectionalLight(0xfff1dc, 2.6);
   private fill = new THREE.HemisphereLight(0x8fb6ff, 0x1a1030, 0.35);
-  private headlamp = new THREE.PointLight(0xffd7a8, 1.6, 6, 1.5);
+  // camera-side fill so a backlit Tzila at dawn still reads as white and coral, not a silhouette
+  private headlamp = new THREE.PointLight(0xffd7a8, 3.4, 9, 1.2);
   private sunSprite: THREE.Sprite;
   private corona: THREE.Sprite;
   private moon: THREE.Mesh;

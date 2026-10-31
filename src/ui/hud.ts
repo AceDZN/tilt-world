@@ -212,7 +212,8 @@ export class Hud {
   }
 
   setTutorial(line: string | null) {
-    this.els.bubble.hidden = !line;
+    // never over an open panel, where it would cover Tzila
+    this.els.bubble.hidden = !line || this.modalOpen();
     if (line) this.els.bubbletxt.innerHTML = line.replace(/\(([^)]*[A-Za-z↑][^)]*)\)/g, (_m, k) => `(${b(k)})`);
   }
 

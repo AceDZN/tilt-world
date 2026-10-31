@@ -34,11 +34,10 @@ Real frames are in `docs/visual-review/`, captured by `npm run shots` (`scripts/
 7. `1 כרטיסים` in the intro card now reads `כרטיס אחד`.
 8. **Snoring was audio only.** A `Z z z` now floats over Tzila when her battery dies and over city places while it is night there. The result card sits high, so she stays visible below it (03b).
 9. **Eclipse framing.** With totality about 50° up, the ground-level chase camera never showed the black Sun. Inside the shadow it now pitches up by about half the Sun's elevation (04).
+10. **Dawn silhouette and bubble.** A stronger camera-side fill keeps a backlit Tzila white and coral (01), and the tutorial bubble hides while a panel is open (07).
 
 ## Still different (honest gaps)
 
 - **Rendering richness.** The mockups are painterly, with dense props (Jerusalem rooftops, cat, telescope, snowy pines, station building, conductor). The game shows the planet, one landmark per place and Tzila. That is right for readability on a phone, but it is visibly simpler.
 - **Midnight-sun gap.** At 69°N on 21 June the midnight Sun is only about 2° up, so it sits just above the limb. That is physically right; the mockup's big gap is not.
-- **Tzila's lighting at dawn (01).** Backlit by a Sun just under the horizon, she is a dark silhouette. A soft rim light would help.
-- **Tutorial bubble** can overlap Tzila when a panel is open (07).
 - **World map (05).** The mockup is an illustrated four-world map; the game uses a four-column level list over the slowly orbiting planet. It works, but it is less charming.
