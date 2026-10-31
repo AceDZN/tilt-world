@@ -6,7 +6,7 @@ A pocket-sized Earth you can sprint around in under a minute. You are **צילה
 
 1. **0–5 s.** Black screen, a lens shutter opens. You're standing on the night side of a tiny glowing Earth: city lights, stars, and a thin orange line, the dawn, on the horizon to your right (east). The battery icon blinks low. One Hebrew line: "השחר מגיע ממזרח. רוצי לקראתו!" ("The dawn comes from the east. Run to meet it!") and an arrow pointing east.
 2. **5–20 s.** You run (WASD or arrows, or the left thumb on touch). The planet rolls under you, the sky lightens and the twilight band sweeps toward you. Crossing into the orange band gives the **dawn boost** (speed trail, panels hum, battery fills).
-3. **20–30 s.** The Sun breaks the horizon. A frame appears; you press **E / the shutter button**. Flash pop, lens flare, a Polaroid slides into the album with stars. One line explains: "רצת 20° מזרחה, אז הזריחה הגיעה אלייך שעה ורבע מוקדם יותר."
+3. **20–30 s.** The Sun breaks the horizon. A frame appears; you press **E / the shutter button**. Flash pop, lens flare, a Polaroid slides into the album with stars. One line explains: "רצת 20° מזרחה, אז הזריחה הגיעה אלייך שעה ו-20 דקות מוקדם יותר."
 
 ## Controls
 

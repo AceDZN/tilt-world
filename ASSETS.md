@@ -295,3 +295,13 @@ All files are under 3 MB. Raw files for the reused models are in `assets-src/tri
 - No glider (dropped by the brief).
 - No grind/balance clip; Tripo has no such preset (see Tzila).
 - Rig job 3 of 3 was left unused.
+
+## Earth textures (NASA)
+
+| File in `public/textures/` | Source (downloaded to `assets-src/nasa/`, git-ignored) | Size |
+|---|---|---|
+| `earth_day.jpg` | NASA Blue Marble Next Generation, December 2004, topography + bathymetry (`world.topo.bathy.200412.3x5400x2700.jpg`) | 5400×2700 |
+| `earth_night.jpg` | NASA Earth Observatory Black Marble 2012 (`dnb_land_ocean_ice.2012.3600x1800.jpg`) | 3600×1800 |
+| `earth_clouds.jpg` | NASA Blue Marble cloud composite (`cloud_combined_2048.jpg`) | 2048×1024 |
+
+NASA imagery is not copyrighted; NASA asks for credit ("NASA Earth Observatory / Blue Marble"), which the README gives. The images show no political borders; the game draws none.
