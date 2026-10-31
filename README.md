@@ -91,7 +91,6 @@ The Hebrew-layout letters on the same keys also work (ש/ד/ג/', ק, ז, ב…)
 
 ## Planned / not done
 
-- The eclipse camera does not yet tilt up to show the black Sun and corona when the Sun is high (`docs/VISUAL_REVIEW.md`).
 - More replay quest kinds (polar night, equinox pairs, tides).
 - A richer world map and props closer to the painterly mockups.
 - Teacher view and progress export.

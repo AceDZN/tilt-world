@@ -179,6 +179,8 @@ export class World {
   /** Landmarks and labels that fade when Tzila stands among them, so they never hide her or the Sun. */
   private nearFade: { obj: THREE.Object3D; at: THREE.Vector3 }[] = [];
   private tmpSeg = new THREE.Vector3();
+  /** During totality the camera looks up at the black Sun instead of along the ground. */
+  private skyTarget: THREE.Vector3 | null = null;
   /** "Z z z" over Tzila when her battery dies, and over city places while it is night there. */
   private zzz = labelSprite('Z z z', '#cfe0ff', 'rgba(14,20,48,0.55)');
   private cityZzz: { obj: THREE.Sprite; up: THREE.Vector3 }[] = [];
@@ -467,6 +469,7 @@ export class World {
     const here = latLon(st);
     const inShadow = ecl && angularDistance(here.lat, here.lon, ecl.lat, ecl.lon) < TOTALITY_RADIUS;
     this.corona.visible = !!inShadow;
+    this.skyTarget = inShadow && view.cameraMode === 'chase' ? this.sunSprite.position : null;
     if (inShadow) this.corona.position.copy(this.sunSprite.position).multiplyScalar(0.99);
     (this.sunSprite.material as THREE.SpriteMaterial).opacity = inShadow ? 0.25 : 1;
     this.sunLight.intensity = inShadow ? 0.25 : 2.6;
@@ -587,7 +590,15 @@ export class World {
       look = new THREE.Vector3();
     } else {
       const base = up.clone().multiplyScalar(PLANET_R);
-      if (view.framed) {
+      if (this.skyTarget && !view.framed) {
+        // low behind her, looking up past her head at the eclipsed Sun
+        const toSun = this.skyTarget.clone().sub(base).normalize();
+        const flat = toSun.clone().addScaledVector(up, -up.dot(toSun)).normalize();
+        // pitch up about half the Sun's elevation: her upper body low in frame, the Sun high
+        const pitch = Math.min(Math.asin(THREE.MathUtils.clamp(up.dot(toSun), 0, 1)) * 0.55, 0.6);
+        want = base.clone().addScaledVector(up, 0.35).addScaledVector(flat, -1.5);
+        look = want.clone().addScaledVector(flat, 6 * Math.cos(pitch)).addScaledVector(up, 6 * Math.sin(pitch));
+      } else if (view.framed) {
         want = base.clone().addScaledVector(up, 0.75).addScaledVector(fwd, -1.7);
         look = base.clone().addScaledVector(up, -0.45).addScaledVector(fwd, 0.5);
       } else {

@@ -20,7 +20,7 @@ Real frames are in `docs/visual-review/`, captured by `npm run shots` (`scripts/
 - **Night side** has warm city lights that fade out past the terminator (01, 03), with cloud wisps and a lat/long grid on the levels that need one.
 - **PiP orbit inset** (02, 04, 06, 07) is a plain circle with the Sun at its centre. At the June position the axis top leans *toward* the Sun, which corrects the error noted on mockup 02. It also shows the Moon's tilted ring on World 4.
 - **Wrong offset (03, 03b):** Dhaka is dark, with a `Z z z` over the sleeping city and a one-line reason ("בדאקה עכשיו לילה…"), red-outlined with an ✖ icon, not color alone. When the battery runs out, Tzila lies down snoring under her own `Z z z`, and the fail card does the arithmetic (UTC+0 vs UTC+6) and states the rule.
-- **Eclipse (04):** the Moon's umbra is a dark disc on the dayside around Tzila; the corona sprite and dimmed sunlight appear while she is inside it.
+- **Eclipse (04):** the Moon's umbra is a dark disc on the dayside. Inside it the light dims, and the camera drops low behind Tzila and looks up past her head at the black Sun with its corona, the mockup's composition.
 - **Sleep pod and calendar train panels (06, 07):** same structure as the mockups: hours/days toggle, stepper, big `לישון!` and `אי אפשר לבטל`; ticket cards with a date, an orbit picture with a season icon, and `כרטיסים: 1 · כרטיס לכיוון אחד`. Following the revision notes, there are no dials anywhere.
 
 ## Fixed during this review
@@ -33,11 +33,11 @@ Real frames are in `docs/visual-review/`, captured by `npm run shots` (`scripts/
 6. **Panels covered Tzila.** With the sleep or train panel open, the camera frames her closer and higher, so she stays visible above it, like the mockups (06, 07).
 7. `1 כרטיסים` in the intro card now reads `כרטיס אחד`.
 8. **Snoring was audio only.** A `Z z z` now floats over Tzila when her battery dies and over city places while it is night there. The result card sits high, so she stays visible below it (03b).
+9. **Eclipse framing.** With totality about 50° up, the ground-level chase camera never showed the black Sun. Inside the shadow it now pitches up by about half the Sun's elevation (04).
 
 ## Still different (honest gaps)
 
 - **Rendering richness.** The mockups are painterly, with dense props (Jerusalem rooftops, cat, telescope, snowy pines, station building, conductor). The game shows the planet, one landmark per place and Tzila. That is right for readability on a phone, but it is visibly simpler.
-- **Eclipse framing (04).** During totality the Sun is high (about 50°), so the chase camera, which looks along the ground, does not show the black Sun with its corona. The scene reads as "inside the shadow", not as the mockup's black disc. Planned: tilt the camera up toward the Sun while the photo order is a sky shot.
 - **Midnight-sun gap.** At 69°N on 21 June the midnight Sun is only about 2° up, so it sits just above the limb. That is physically right; the mockup's big gap is not.
 - **Tzila's lighting at dawn (01).** Backlit by a Sun just under the horizon, she is a dark silhouette. A soft rim light would help.
 - **Tutorial bubble** can overlap Tzila when a panel is open (07).
