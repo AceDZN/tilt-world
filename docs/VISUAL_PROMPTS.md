@@ -23,3 +23,15 @@ Same game, same art style, landscape 16:9: an in-game screenshot of the climax o
 ## 05-world-map.png — level select
 
 Same game, same art style, landscape 16:9: the level select screen. A floating tiny Earth in space slowly turning, with four glowing ring 'worlds' orbiting around it (Spin, Orbit and Tilt, Sun as Engine, Moon), each ring has numbered photo-pin markers 1–18 on the globe's surface at real places (Mount Fuji, Lapland, Jerusalem, Sydney, a Pacific island), some with a Polaroid thumbnail and stars, others locked. Hebrew titles 'הסיבוב העצמי', 'ההקפה ונטיית הציר', 'השמש כמקור אנרגיה', 'הירח'. Tzila floats in the corner holding up a Polaroid album. [+ shared style line]
+
+## Revision (31 Oct, no-duplicate rule)
+
+The handoff changed after images 01–05 were made: **there are no orbit or Moon dials**, and time can't be scrubbed. Images 02 and 04 are still valid for the scene, camera, PiP inset, viewfinder and photo-order card, but their dial widgets are obsolete. Two new targets replace those widgets:
+
+## 06-sleep-pod.png — committing to time
+
+Same game, same art style, landscape 16:9: an in-game screenshot. Evening on a flat rooftop in Jerusalem (old stone city, domes and walls below, on the tiny planet with a curved horizon); the Sun has just set, the orange twilight band crosses the planet, a thin crescent Moon low in the west. Tzila has unfolded a cosy egg-shaped sleep pod from her backpack (white shell, coral trim, a round glass hatch, blanket inside) and stands beside it. Bottom centre: a chunky rounded Hebrew panel titled 'תא שינה' with a big number stepper showing '7' and a toggle 'שעות / ימים' set to 'ימים', a big glowing commit button 'לישון!' and a small note 'אי אפשר לבטל'. Top left: a round picture-in-picture inset from space showing the Sun, the Earth and the Moon's orbit (read-only, no handles). Top right: level name 'שלב 15: מופעי הירח', stars, a photo order card with a small strip of 8 moon phase thumbnails, three of them already filled with Polaroids. Bottom right: the big round camera shutter button. [+ shared style line]
+
+## 07-calendar-train.png — one-way ticket to a date
+
+Same game, same art style, landscape 16:9: an in-game screenshot. A small whimsical 'calendar train' station on a snowy hill in Lapland on the tiny planet: a little steam locomotive with a calendar-page chimney waits on a ring-shaped track that floats around the planet; Tzila stands at a ticket booth. Bottom centre: a Hebrew timetable board 'רכבת הלוח' listing destination dates as big ticket stubs: '21 במרץ', '21 ביוני', '23 בספטמבר', '22 בדצמבר', each with a tiny Earth-and-Sun icon showing the tilted axis; a counter 'כרטיסים: 1' and a note 'כרטיס לכיוון אחד'. Top left: the round orbit inset showing Earth's current position (read-only). Top right: 'שלב 8: שמש חצות', stars, photo order card 'צלמי: השמש מעל האופק בחצות'. A curious polar bear peeks from behind a snowy rock. [+ shared style line]
