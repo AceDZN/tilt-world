@@ -134,4 +134,22 @@ await page.evaluate(() => window.advanceTime(2000));
 await page.waitForTimeout(200);
 await shot('07-calendar-train');
 
+// 08 phone: L12 HUD at 390×844 with touch (order card, chips, joystick, waypoint markers)
+const phone = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
+for (const [p, lvl, name] of [[phone, 12, '08-phone-l12'], [phone, 15, '09-phone-l15']]) {
+  await p.goto(BASE);
+  await p.waitForFunction(() => !!window.render_game_to_text && JSON.parse(window.render_game_to_text()).screen !== 'loading', null, { timeout: 60000 });
+  await p.evaluate((id) => window.tilt.startLevel(id), lvl);
+  await p.waitForTimeout(300);
+  await p.keyboard.press('Enter');
+  await p.evaluate(() => {
+    window.advanceTime(300);
+    window.tilt.world().snapCamera(window.tilt.state());
+    window.advanceTime(17);
+  });
+  await p.waitForTimeout(200);
+  await p.screenshot({ path: `${OUT}/${name}.png` });
+  console.log('captured', name);
+}
+
 await browser.close();

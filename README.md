@@ -55,8 +55,8 @@ URL options: `?level=N` opens level N directly; `?all` unlocks every level.
 | Turn | `A`/`D` or `←`/`→` | left stick |
 | Jump (onto/off a rail) | `Space` | jump button |
 | Shoot | `E` | shutter button |
-| Sleep pod (pick hours/days, cannot be cancelled) | `Z` | chip |
-| Calendar train (at a station) | `C` | chip |
+| Sleep pod (pick hours, or days plus hours; cannot be cancelled; the world waits while you choose) | `Z`, then `+`/`−` and `Enter` | chip |
+| Calendar train (at a station; the world waits while you choose) | `C`, then `1`–`9` | chip |
 | Plant the tripod (L2) | `P` | chip |
 | Sun sight (L13) | `Q` | chip |
 | Declare "impossible" (L15) | `X` | chip |
@@ -84,6 +84,7 @@ The Hebrew-layout letters on the same keys also work (ש/ד/ג/', ק, ז, ב…)
 - **HUD** (`src/ui/`):
   - Compass with N and `מזרח →`, battery, local clock and date, film counter, photo-order card, sleep and train panels.
   - Win Polaroid captured from the real frame, and a fail card with the rule.
+  - Waypoint chips (direction and distance) to every target place and to the Moon's shadow during an eclipse; a tide gauge in L16.
   - Numbers sit in `<bdi>`; feedback never relies on color alone (icons and words too).
 - **Replay:** solver-verified random photo quests (`src/game/quests.ts`, `tests/quests.test.ts`). "Always take the June ticket" and "run east forever" both fail.
 - **Test hooks:** `window.render_game_to_text()` returns the state as JSON; `window.advanceTime(ms)` steps the game deterministically.
@@ -92,6 +93,7 @@ The Hebrew-layout letters on the same keys also work (ש/ד/ג/', ק, ז, ב…)
 ## Planned / not done
 
 - More replay quest kinds (polar night, equinox pairs, tides).
+- Playtest P3 items: 15-minute sleep steps or a faster idle clock, fireworks in L5, a finale closing card, moon azimuth in `render_game_to_text` (see `PLAYTEST.md`).
 - A richer world map and props closer to the painterly mockups.
 - Teacher view and progress export.
 

@@ -471,6 +471,13 @@ export class World {
     const inShadow = ecl && angularDistance(here.lat, here.lon, ecl.lat, ecl.lon) < TOTALITY_RADIUS;
     this.corona.visible = !!inShadow;
     this.skyTarget = inShadow && view.cameraMode === 'chase' ? this.sunSprite.position : null;
+    // World 4: standing still and facing a high Moon, look up at it (it is often 40-70° up)
+    if (!this.skyTarget && lvl.world === 4 && view.cameraMode === 'chase' && !view.running && st.mode === 'play') {
+      const e = here0.dot(moonDir);
+      const flat = moonDir.clone().addScaledVector(here0, -e);
+      const head = new THREE.Vector3(st.heading.x, st.heading.y, st.heading.z);
+      if (e > 0.37 && flat.lengthSq() > 1e-6 && flat.normalize().dot(head) > 0.75) this.skyTarget = this.moon.position;
+    }
     if (inShadow) this.corona.position.copy(this.sunSprite.position).multiplyScalar(0.99);
     (this.sunSprite.material as THREE.SpriteMaterial).opacity = inShadow ? 0.25 : 1;
     this.sunLight.intensity = inShadow ? 0.25 : 2.6;
@@ -570,8 +577,10 @@ export class World {
       const d = f.at.distanceTo(this.player.position);
       let k = THREE.MathUtils.smoothstep(d, 0.6, 0.9);
       // ...and anything standing on the camera's line to her
+      // labels only fade up close; a target's label straight ahead must stay readable
+      const isLabel = (f.obj as THREE.Sprite).isSprite;
       const t = this.tmpOcc.subVectors(f.at, cam).dot(seg) / Math.max(1e-6, segLen2);
-      if (t > 0 && t < 1) {
+      if (!isLabel && t > 0 && t < 1) {
         const off = this.tmpOcc.subVectors(f.at, cam).addScaledVector(seg, -t).length();
         k = Math.min(k, THREE.MathUtils.smoothstep(off, 0.35, 0.7));
       }

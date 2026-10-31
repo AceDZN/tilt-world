@@ -92,6 +92,9 @@ bdi { unicode-bidi: isolate; }
 .panel .col { display: flex; flex-direction: column; gap: 10px; margin: 12px 0; }
 .step { width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--edge); background: #222c63; font-size: 24px; }
 .step:disabled { opacity: 0.3; }
+.step.small { width: 40px; height: 40px; font-size: 15px; }
+.num.small { min-width: 56px; font-size: 24px; }
+.row.extra { gap: 8px; color: var(--muted); }
 .num { min-width: 86px; padding: 6px 12px; font-size: 34px; font-weight: 700; background: #0a1030; border: 1px solid var(--edge); border-radius: 12px; }
 .unit { font-size: 18px; color: var(--muted); }
 .toggle { display: flex; background: #0a1030; border-radius: 999px; padding: 3px; border: 1px solid var(--edge); }
@@ -110,7 +113,7 @@ bdi { unicode-bidi: isolate; }
 .moonico { width: 34px; }
 .foot .note { color: var(--muted); }
 .result .why { color: var(--ink); font-size: 18px; line-height: 1.5; max-width: 520px; margin: 8px auto; text-align: right; }
-.result ul.why { padding-inline-start: 18px; }
+.result ul.why { padding-inline-start: 0; list-style: none; }
 .result .rule { font-size: 15px; max-width: 520px; margin: 8px auto; text-align: right; }
 .polaroid { background: #fff; padding: 10px 10px 30px; width: 240px; margin: 0 auto 8px; transform: rotate(-3deg); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); color: #222; }
 .polaroid .photo { width: 100%; aspect-ratio: 4 / 3; background: #222 center / cover; }
@@ -145,7 +148,6 @@ bdi { unicode-bidi: isolate; }
 .loading { position: absolute; inset: 0; display: grid; place-items: center; font-size: 22px; color: var(--muted); }
 
 @media (max-width: 720px) {
-  .tr { max-width: 58vw; }
   .levelpill { font-size: 14px; padding: 6px 12px; }
   .order { font-size: 12px; padding: 8px 10px; }
   .inset-frame { width: 38vw; }
@@ -155,8 +157,13 @@ bdi { unicode-bidi: isolate; }
   .pill { font-size: 13px; padding: 4px 10px; }
   .bubble { font-size: 14px; top: auto; bottom: 200px; max-width: 86vw; }
   .shutter { width: 70px; height: 70px; }
-  .actions { bottom: 100px; max-width: 94vw; }
+  /* chips stack on the right above the shutter, clear of the joystick on the left */
+  .actions { bottom: 104px; right: 10px; left: auto; transform: none; flex-direction: column; align-items: flex-end; max-width: 46vw; }
   .act { font-size: 13px; padding: 6px 10px; }
+  /* the order card keeps only the checklist (the brief was on the intro card) and stays out of the compass column */
+  .tr { max-width: 46vw; }
+  .order .ohead { display: none; }
+  .order { max-height: 34vh; overflow-y: auto; }
 }
 @media (prefers-reduced-motion: reduce) {
   #battery.low .batfill { animation: none; }
@@ -169,3 +176,10 @@ bdi { unicode-bidi: isolate; }
 .nodeico { width: 64px; background: #1a2350; border-radius: 8px; }
 .questrow { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 18px auto 0; }
 .questrow .go { font-size: 19px; }
+.markers { position: absolute; inset: 0; pointer-events: none; }
+.marker { position: absolute; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 6px; white-space: nowrap; background: rgba(10, 16, 44, 0.82); border: 1.5px solid rgba(127, 227, 255, 0.75); border-radius: 999px; padding: 3px 10px; font-size: 14px; color: #eaf4ff; }
+.marker small { color: var(--muted); font-size: 12px; }
+.marker .marrow { width: 11px; height: 11px; flex: none; color: #7fe3ff; }
+.marker.shadow { border-color: #ffb02e; }
+.marker.shadow .marrow { color: #ffb02e; }
+@media (max-width: 700px) { .marker { font-size: 12px; padding: 2px 8px; max-width: 190px; } .marker small { display: none; } }

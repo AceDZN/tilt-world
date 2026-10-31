@@ -57,6 +57,16 @@ export function angularDistance(lat1: number, lon1: number, lat2: number, lon2: 
   return Math.acos(clamp(dot(latLonToVec(lat1, lon1), latLonToVec(lat2, lon2)), -1, 1)) * R2D;
 }
 
+/** Initial great-circle bearing from place 1 to place 2, degrees clockwise from north. */
+export function bearing(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const p1 = lat1 * D2R;
+  const p2 = lat2 * D2R;
+  const dl = (lon2 - lon1) * D2R;
+  const y = Math.sin(dl) * Math.cos(p2);
+  const x = Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl);
+  return ((Math.atan2(y, x) * R2D) + 360) % 360;
+}
+
 // ---------------------------------------------------------------- date and orbit
 
 /** Solar declination for orbit longitude L. +23.5 at the June solstice, 0 at equinoxes. */

@@ -90,7 +90,7 @@ const L1: LevelDef = {
   brief: 'צלמי את הזריחה הראשונה של הבוקר. השחר מתקרב — אבל הסוללה כמעט ריקה.',
   rule: 'בסיבוב העצמי כדור הארץ מסתובב ממערב למזרח, 15° בשעה. ריצה מזרחה מקדימה את הזריחה.',
   start: { lat: 20, lon: 0, heading: 90, utc: utcAt(4 + 40 / 60, 0), L: 0, battery: 18 },
-  rate: 0.25,
+  rate: 0.15,
   budgetHours: 1.3,
   film: 3,
   clock: 'local',
@@ -111,7 +111,7 @@ const L1: LevelDef = {
   ],
   hint: 'הרצועה הכתומה היא אזור הדמדומים. היא זזה מערבה — לכיוונך.',
   hintOverlay: { kind: 'terminator' },
-  tutorial: ['צפון תמיד למעלה במצפן ובמפה, ומזרח מימין.', 'השחר מגיע ממזרח. רוצי לקראתו! (W או ↑)', 'כשהשמש מציצה — E לצילום.'],
+  tutorial: ['השחר מגיע ממזרח. רוצי לקראתו! (W או ↑)', 'צפון תמיד למעלה במצפן ובמפה, ומזרח מימין.', 'כשהשמש מציצה — E לצילום.'],
   explain: explainWith({
     battery: () => 'השחר זז רק 15° בשעה, והסוללה נגמרה לפני שהגיע אלייך. ריצה מזרחה, לקראתו, מקדימה את הזריחה.',
     time: () => 'השחר זז רק 15° בשעה. ריצה מזרחה לקראתו מקצרת את ההמתנה.',
@@ -751,6 +751,23 @@ const L16: LevelDef = {
   }),
 };
 
+
+/** Hours from now (negative = ago) to the nearest moment within ±window h when `hit` is true, or null. */
+function eclipseOffset(c: ShotCtx, hit: (utc: number, L: number, age: number) => boolean, window = 40): number | null {
+  for (let k = 1; k <= window * 4; k++) {
+    for (const dh of [k / 4, -k / 4]) {
+      if (hit(c.utc + dh, c.L + (dh / 24) * 0.9856, c.moonAge + dh / 24)) return dh;
+    }
+  }
+  return null;
+}
+
+function whenText(dh: number): string {
+  const h = Math.round(Math.abs(dh));
+  const hrs = h <= 1 ? 'שעה' : h === 2 ? 'שעתיים' : `${h} שעות`;
+  return dh > 0 ? `בעוד כ-${hrs}` : `לפני כ-${hrs}`;
+}
+
 const L17: LevelDef = {
   id: 17,
   world: 4,
@@ -776,6 +793,8 @@ const L17: LevelDef = {
         if (c.sun.elevation < 3) return no('השמש לא בשמיים כאן.');
         const center = solarEclipseCenter(c.utc, c.L, c.moonAge);
         if (!center) {
+          const dh = eclipseOffset(c, (u, L, a) => solarEclipseCenter(u, L, a) !== null);
+          if (dh !== null) return no(`זה המולד הנכון — יש ליקוי, אבל ${whenText(dh)}. עכשיו הצל עוד לא נוגע בכדור הארץ: ישני עד אז ורוצי אל הצל.`);
           const beta = moonEclipticLatitude(c.L, c.moonAge);
           return no(`מולד — אבל הירח עובר ${beta > 0 ? 'מעל השמש' : 'מתחת לשמש'}: מסלולו נטוי 5° והצל מפספס את כדור הארץ החודש.`);
         }
@@ -837,6 +856,8 @@ const L18: LevelDef = {
       label: 'ליקוי',
       check: (c) => {
         if (!lunarEclipse(c.L, c.moonAge)) {
+          const dh = eclipseOffset(c, (_u, L, a) => lunarEclipse(L, a));
+          if (dh !== null) return no(`בירח המלא הזה יש ליקוי — ${whenText(dh)}.`);
           if (phaseIndex(c.moonAge) === 4) return no('ירח מלא — אבל הוא עובר מעל או מתחת לצל של כדור הארץ.');
           return no('אין ליקוי עכשיו.');
         }

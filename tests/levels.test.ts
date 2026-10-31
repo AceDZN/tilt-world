@@ -452,6 +452,13 @@ test('L17 eclipse needs a new moon on the node line, then you run into the shado
   assert.match(lastText(naive), /נטוי 5°/);
 
   b.ticket(good[0].i);
+  // Right new moon, wrong hour: the game must say the eclipse is coming, not that it misses.
+  const early = b.findHour((s) => solarEclipseCenter(s.utc, s.L, s.age) !== null, 0, 36, 0.25);
+  if (early > 1 && b.ctx().sun.elevation > 3) {
+    b.faceSun();
+    b.shoot();
+    assert.match(lastText(b), /המולד הנכון/);
+  }
   // Sleep to the hour the shadow touches the Earth on the day side.
   const h = b.findHour((s) => solarEclipseCenter(s.utc, s.L, s.age) !== null, 0, 36, 0.25);
   assert.ok(h >= 0, 'the shadow reaches the Earth near this new moon');

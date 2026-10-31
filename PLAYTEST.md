@@ -263,3 +263,23 @@ But two things undercut it:
 - L14's rail choice (70° vs 62°) is a real decision with a clear failure.
 - L8's midnight sun and the L1 sunrise are the visual highlights.
 - I saw no console errors in 18 levels' worth of runs.
+
+## Fixes after this playtest (crew lead)
+
+| Issue | Status | What changed |
+|---|---|---|
+| P1 clock runs inside the train and sleep dialogs (L10 unwinnable by hand) | **Fixed** | `simStep` returns while either panel is open: browsing costs no game time. Checked in the browser (06:06 stays 06:06 for 5 s with the panel open, then runs again). |
+| P1 wrong text on the right new moon (L17) / full moon (L18) | **Fixed** | The checks scan ±40 h. Shooting on the right new moon too early now says "זה המולד הנכון — יש ליקוי, אבל בעוד כ-14 שעות…"; L18 says when the lunar eclipse comes. There is a test in `tests/levels.test.ts` (L17). |
+| P1 L17's shadow can't be found | **Fixed** | While the shadow is on the Earth, an orange waypoint chip "🌑 צל הירח" with a direction arrow and distance points to it. The camera looks up at the black Sun inside totality. |
+| P1 targets you can't see or find | **Fixed** | Waypoint chips around Tzila for every place you are not at, with a direction arrow (relative to facing) and distance in km (L4 Dhaka, L12 Alps and Iceland, …). Labels no longer fade when they sit on the camera line. |
+| P1 L1 never teaches the keys; the battery dies about 6 s after Enter | **Fixed** | The intro card shows the keys (or touch controls on a phone). The first tutorial line is the run key. The L1 clock is slower (0.15 h/s), so waiting dies in about 9 s instead of 6. Running east is still the only solution (tests). |
+| P2 numbers flip in RTL | **Fixed** | Every escaped HUD string wraps signed numbers, ranges, ° and % in LTR `bdi` ("15° לשעה", "+179 ימים"). A Hebrew prefix like "ב-6°C" is kept on one line and is not read as a minus. |
+| P2 Hebrew errors | **Fixed** | "שעה אחת / שעתיים / יומיים", "כרטיס אחד", counted end-card lines ("פספוס אחד", "התחייבות אחת"). Ticket letters skip the final forms (no "כרטיס ך"). |
+| P2 ticket cards | **Fixed** (diagram size unchanged) | Cards sorted soonest first, as many per page as fit (up to 6), and number keys follow the card order. Season icons go by orbit quadrant (Aug–Oct 🍂, Nov–Jan ❄, Feb–Apr ✿, May–Jul ☀). The page arrows no longer mirror. The L10 inset shows no date. |
+| P2 camera never tilts up | **Fixed** | World 4: standing still and facing a Moon more than 22° up, the camera looks up at it. Totality: it looks up at the eclipsed Sun. |
+| P2 sleep picker | **Fixed** | − / + and −6 / +6 buttons (forced LTR, so the labels don't mirror). In days mode, "ועוד N שעות" makes days plus hours one commitment. |
+| P2 phone layout | **Fixed** | Action chips stack on the right above the shutter, clear of the joystick. The order card keeps only the checklist (the brief was on the intro card) and stays out of the compass column. Waypoint chips stay inside the screen. See `docs/visual-review/08-phone-l12.png` and `09-phone-l15.png`. |
+| P2 L16 no tide reading | **Fixed** | The clock pill shows a tide gauge: "🌊 −3.1 מ' ✔ השביל יבש" or "✖ השביל מוצף (נפתח מתחת ל--2.5)". |
+| P3-6 H shows only the grid | **Fixed** | H also shows the level's hint sentence for 6 s. |
+| P3-9 end card shows "•" and "★" | **Fixed** | The list has no bullets. |
+| P3-1…5, 7, 8, 10, 11 | Open | Listed in `progress.md` as follow-ups. |

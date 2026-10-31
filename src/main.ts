@@ -5,10 +5,10 @@ import '@fontsource/rubik/600.css';
 import '@fontsource/rubik/700.css';
 import './ui/style.css';
 import * as THREE from 'three';
-import { dateLabel, dayOfYearFromL, lFromDayOfYear, localDayIndex, phaseIndex, PHASE_NAMES, shadowLength, sunPosition, wrap180, wrap24 } from './astro/astro';
+import { angularDistance, bearing, dateLabel, solarEclipseCenter, dayOfYearFromL, lFromDayOfYear, localDayIndex, phaseIndex, PHASE_NAMES, shadowLength, sunPosition, wrap180, wrap24 } from './astro/astro';
 import { LEVELS, getLevel } from './game/levels';
 import { verifiedQuest } from './game/quests';
-import { atStation, orbitL, createSim, facingAzimuth, latLon, shotCtx, step, ticketChoices, type SimEvent, type SimState } from './game/sim';
+import { atStation, causewayTide, orbitL, createSim, facingAzimuth, latLon, shotCtx, step, ticketChoices, type SimEvent, type SimState } from './game/sim';
 import { NO_INPUT, type Input, type LevelDef } from './game/types';
 import { loadModels } from './scene/models';
 import { World } from './scene/world';
@@ -345,7 +345,7 @@ function handleKeys() {
     }
     if (trainOpen) {
       const n = Number(k);
-      if (n >= 1 && n <= 9) onAction('ticket', n - 1);
+      if (n >= 1 && n <= 9 && hud.trainIndex(n - 1) !== undefined) onAction('ticket', hud.trainIndex(n - 1));
       continue;
     }
     if (k === 'e' || k === 'ק') pending.shoot = true;
@@ -366,8 +366,9 @@ function handleKeys() {
 function simStep() {
   if (!st || paused || transition || !started) return;
   if (st.mode !== 'play' && st.mode !== 'tripod') return;
-  const modal = !hud.el('sleepPanel').hidden || !hud.el('trainPanel').hidden;
-  const ax = modal ? { forward: 0, turn: 0 } : controls.axes();
+  // The world waits while you choose: browsing tickets or sleep hours costs no game time.
+  if (!hud.el('sleepPanel').hidden || !hud.el('trainPanel').hidden) return;
+  const ax = controls.axes();
   const input: Input = { ...NO_INPUT, ...ax, ...pending };
   pending = {};
   const before = st.utc;
@@ -391,6 +392,10 @@ function handleEvents(evs: SimEvent[]) {
   if (!st) return;
   for (const e of evs) {
     switch (e.kind) {
+      case 'hint':
+        // the overlay alone is easy to miss: say what it shows
+        if (st.level.hint) hud.toast(`💡 ${st.level.hint}`, 'info', 6000);
+        break;
       case 'shot-ok':
         sound.shutter();
         sound.ok();
@@ -486,8 +491,8 @@ function showResult() {
       '★ השלב הושלם',
       st.hintsUsed === 0 ? '★ בלי רמז' : '☆ השתמשת ברמז',
       st.misses <= 1 && commits <= par
-        ? `★ תכנון חסכוני (${commits === 0 ? 'בלי שינה וכרטיסים' : `${commits} התחייבויות`}${st.misses ? ', פספוס אחד' : ''})`
-        : `☆ כוכב שלישי: עד פספוס אחד ועד ${par} שינות/כרטיסים (היו ${st.misses} פספוסים, ${commits})`,
+        ? `★ תכנון חסכוני (${commits === 0 ? 'בלי שינה וכרטיסים' : count(commits, 'התחייבות', 'התחייבויות')}${st.misses ? ', פספוס אחד' : ''})`
+        : `☆ כוכב שלישי: עד פספוס אחד ועד ${par} שינות/כרטיסים. הפעם: ${count(st.misses, 'פספוס', 'פספוסים', false)} ו${count(commits, 'התחייבות', 'התחייבויות')}.`,
     ];
     hud.showWin(lvl, st.stars, lines, lvl.id < LEVELS.length || lvl.id >= 100);
     const photo = document.getElementById('winPhoto');
@@ -496,9 +501,17 @@ function showResult() {
 }
 
 function fmtHours(h: number) {
-  if (h >= 48 && h % 24 === 0) return `${h / 24} ימים`;
+  if (h >= 48 && h % 24 === 0) return h === 48 ? 'יומיים' : `${h / 24} ימים`;
   if (h === 24) return 'יממה';
-  return `${Math.round(h * 10) / 10} שעות`;
+  const r = Math.round(h * 10) / 10;
+  return r === 1 ? 'שעה אחת' : r === 2 ? 'שעתיים' : `${r} שעות`;
+}
+
+/** Hebrew count phrase: (1, 'שינה', 'שינות') → 'שינה אחת'. */
+function count(n: number, one: string, many: string, fem = true) {
+  if (n === 1) return `${one} ${fem ? 'אחת' : 'אחד'}`;
+  if (n === 0) return `אפס ${many}`;
+  return `${n} ${many}`;
 }
 
 // ---------------------------------------------------------------- HUD info
@@ -525,6 +538,12 @@ function updateHud() {
     icon = '🕰️';
     clock = sun.elevation > 0.5 ? `צל: ${b(shadowLength(sun.elevation).toFixed(2))} × גובה המוט` : 'אין צל';
   }
+  if (lvl.special?.kind === 'causeway') {
+    // a tide gauge, so the crossing is a reading, not a guess
+    const tide = causewayTide(st);
+    const open = tide <= lvl.special.openBelow;
+    clock += ` · 🌊 ${b(tide.toFixed(1))} מ' ${open ? '✔ השביל יבש' : `✖ השביל מוצף (נפתח מתחת ל-${b(String(lvl.special.openBelow))})`}`;
+  }
   const shots = lvl.shots.map((s) => ({ label: s.label, done: !!st!.taken[s.id], value: notes[s.id] }));
   const sp = lvl.special;
   hud.update({
@@ -539,8 +558,25 @@ function updateHud() {
     tokens: sp?.kind === 'tokens' ? { got: st.tokens.filter(Boolean).length, of: st.tokens.length } : undefined,
     rounds: sp?.kind === 'whereami' ? { got: st.round, of: sp.rounds.length } : undefined,
     impossible: sp?.kind === 'impossible' ? st.impossibleDeclared : undefined,
-    insetDate: lvl.world === 4 ? `${dateLabel(L)} · ${PHASE_NAMES[phaseIndex(st.moonAge)]}` : dateLabel(L),
+    // L10 promises no month names: the hill's shadow is the only calendar
+    insetDate: lvl.clock === 'sundial' ? '' : lvl.world === 4 ? `${dateLabel(L)} · ${PHASE_NAMES[phaseIndex(st.moonAge)]}` : dateLabel(L),
   });
+  // waypoints to every place you are not at, and to the Moon's shadow while it is on the Earth
+  const face = facingAzimuth(st);
+  const marks: { name: string; rel: number; km: number; kind?: 'shadow' }[] = [];
+  if (st.mode === 'play' && lvl.special?.kind !== 'whereami') {
+    for (const p of lvl.places) {
+      const d = angularDistance(lat, lon, p.lat, p.lon);
+      if (d < Math.max(1.5, p.radius)) continue;
+      marks.push({ name: p.name, rel: wrap180(bearing(lat, lon, p.lat, p.lon) - face), km: d * 111.2 });
+    }
+    const ecl = solarEclipseCenter(displayUtc, L, st.moonAge);
+    if (ecl) {
+      const d = angularDistance(lat, lon, ecl.lat, ecl.lon);
+      if (d > 1.5) marks.push({ name: '🌑 צל הירח', rel: wrap180(bearing(lat, lon, ecl.lat, ecl.lon) - face), km: d * 111.2, kind: 'shadow' });
+    }
+  }
+  hud.markers(marks);
   // sun sight (hold Q)
   if (controls.held('q', '/') && st.mode === 'play') {
     const dir = sun.azimuth > 90 && sun.azimuth < 270 ? 'דרום' : 'צפון';

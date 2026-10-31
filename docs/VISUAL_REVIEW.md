@@ -11,6 +11,7 @@ Real frames are in `docs/visual-review/`, captured by `npm run shots` (`scripts/
 | 04 | `visual-targets/04-eclipse.png` | `visual-review/04-eclipse.png` | L17, node new-moon ticket, inside the Moon's shadow |
 | 05 | `visual-targets/05-world-map.png` | `visual-review/05-world-map.png` | Menu with some stars earned |
 | 06 | `visual-targets/06-sleep-pod.png` | `visual-review/06-sleep-pod.png` | L15 rooftop, sleep pod panel open |
+| 08, 09 | (phone) | `visual-review/08-phone-l12.png`, `09-phone-l15.png` | 390×844 touch: waypoint chips, chips over the shutter, checklist-only order card |
 | 07 | `visual-targets/07-calendar-train.png` | `visual-review/07-calendar-train.png` | L6 station, calendar-train panel open |
 
 ## What matches

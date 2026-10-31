@@ -36,7 +36,30 @@ export const hhmm = (h: number) => {
   const m = Math.round(wrap24(h) * 60) % 1440;
   return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
 };
-const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+// Hebrew letters for unlabeled tickets, skipping the final forms (ך ם ן ף ץ)
+const TICKET_LETTERS = 'אבגדהוזחטיכלמנסעפצקרשת'.split('');
+const escRaw = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+// Numbers with a sign, a range, a degree or a percent flip in RTL ("°15", "179+", "40–20"): keep each one LTR.
+// (a hyphen right after a Hebrew letter is a prefix, as in "ב-6°C", not a minus sign)
+const NUM = /(?:(?<![\u0590-\u05FF])[+\-−])?\d+(?:[.,:]\d+)*(?:\s?[–-]\s?\d+(?:[.,:]\d+)*)?(?:°C?|%)?(?:\+)?/g;
+/** The same for ready-made HTML: wrap numbers in text, never inside tags or existing bdi. */
+const ltrNums = (html: string) =>
+  html
+    .split(/(<bdi[^>]*>.*?<\/bdi>|<[^>]+>)/)
+    .map((part) => (part.startsWith('<') ? part : part.replace(NUM, (m) => `<bdi dir="ltr">${m}</bdi>`)))
+    .join('');
+const esc = (s: string) => {
+  let out = '';
+  let last = 0;
+  for (const m of s.matchAll(NUM)) {
+    const num = `<bdi dir="ltr">${escRaw(m[0])}</bdi>`;
+    // keep a prefix like "ב-" on the same line as its number
+    const pre = /[\u0590-\u05FF]-$/.test(s.slice(last, m.index)) ? 2 : 0;
+    out += escRaw(s.slice(last, m.index! - pre)) + (pre ? `<span style="white-space:nowrap">${escRaw(s.slice(m.index! - pre, m.index))}${num}</span>` : num);
+    last = m.index! + m[0].length;
+  }
+  return out + escRaw(s.slice(last));
+};
 const stars = (n: number, of = 3) =>
   Array.from({ length: of }, (_, i) => `<span class="star ${i < n ? 'on' : ''}" aria-hidden="true">${i < n ? '★' : '☆'}</span>`).join('');
 
@@ -44,7 +67,9 @@ const stars = (n: number, of = 3) =>
 export function seasonIcon(L: number): string {
   const d = declination(L);
   const lean = (d / 23.5) * 23.5; // + = north pole toward the Sun (Sun on the right)
-  const sym = d > 12 ? '☀︎' : d < -12 ? '❄︎' : ((L % 360) + 360) % 360 < 180 ? '✿' : '🍂';
+  // northern seasons by orbit quadrant: spring around L 0, summer 90, autumn 180, winter 270
+  const q = Math.floor((((L + 45) % 360) + 360) % 360 / 90);
+  const sym = ['✿', '☀︎', '🍂', '❄︎'][q];
   return `<svg viewBox="0 0 120 70" class="season" aria-hidden="true">
     <circle cx="96" cy="35" r="13" fill="#ffd25a"/><circle cx="96" cy="35" r="19" fill="#ffb02e" opacity=".25"/>
     <line x1="58" y1="35" x2="80" y2="35" stroke="#ffd25a" stroke-width="2" stroke-dasharray="3 3"/>
@@ -84,9 +109,13 @@ export function moonIcon(age: number): string {
 export class Hud {
   root: HTMLElement;
   private els: Record<string, HTMLElement> = {};
+  private markerKey = '';
+  private trainOrder: number[] = [];
   private onAction: (a: HudAction, arg?: number) => void;
   private sleepHours = 6;
   private sleepDays = false;
+  /** Extra hours on top of whole days (days mode), so "3 days and 5 hours" is one commitment. */
+  private sleepExtra = 0;
   private toastTimer = 0;
   private level: LevelDef | null = null;
   private trainChoices: TicketChoice[] = [];
@@ -117,6 +146,7 @@ export class Hud {
           <div class="levelpill"><span id="lvltitle"></span><span id="lvlstars" class="stars"></span></div>
           <div class="order" id="order"></div>
         </div>
+        <div class="markers" id="markers" aria-hidden="true"></div>
         <div class="bubble" id="bubble" hidden><span class="bubble-face">◉</span><span id="bubbletxt"></span></div>
         <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
         <div class="sight" id="sight" hidden></div>
@@ -160,7 +190,7 @@ export class Hud {
         .map((l) => {
           const s = progress[l.id] ?? 0;
           const open = unlocked(l.id);
-          return `<button class="lvl ${open ? '' : 'locked'}" ${open ? `data-a="level" data-arg="${l.id}"` : 'disabled'} aria-label="שלב ${l.id}: ${esc(l.title)}${open ? '' : ' (נעול)'}">
+          return `<button class="lvl ${open ? '' : 'locked'}" ${open ? `data-a="level" data-arg="${l.id}"` : 'disabled'} aria-label="שלב ${l.id}: ${escRaw(l.title)}${open ? '' : ' (נעול)'}">
             <span class="num">${b(l.id)}</span><span class="lt">${esc(l.title)}</span><span class="stars">${open ? stars(s) : '🔒'}</span></button>`;
         })
         .join('');
@@ -211,6 +241,37 @@ export class Hud {
     this.els.actions.innerHTML = acts.join('');
   }
 
+  /** Waypoint chips around the screen edge: rel = bearing relative to Tzila's facing (0 = straight ahead). */
+  markers(list: { name: string; rel: number; km: number; kind?: 'shadow' }[]) {
+    const key = list.map((m) => `${m.name}${Math.round(m.rel / 3)}${Math.round(m.km / 100)}`).join('|');
+    if (key === this.markerKey) return;
+    this.markerKey = key;
+    // on an ellipse around Tzila, below the HUD corners; then nudge apart any that would overlap
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    const pos = list.map((m) => {
+      const r = (m.rel * Math.PI) / 180;
+      const half = W < 700 ? 95 : 130; // keep the whole chip on screen
+      const x = Math.min(W - half, Math.max(half, W * (0.5 + Math.sin(r) * 0.36)));
+      return { x, y: H * (0.6 - Math.cos(r) * 0.2) };
+    });
+    const order = pos.map((_p, i) => i).sort((a, c) => pos[a].y - pos[c].y);
+    for (let k = 1; k < order.length; k++)
+      for (let j = 0; j < k; j++) {
+        const p = pos[order[k]];
+        const q = pos[order[j]];
+        if (Math.abs(p.x - q.x) < 190 && Math.abs(p.y - q.y) < 30) p.y = q.y + 30;
+      }
+    this.els.markers.innerHTML = list
+      .map((m, i) => {
+        const x = (pos[i].x / W) * 100;
+        const y = (pos[i].y / H) * 100;
+        const km = m.km >= 1000 ? `${(m.km / 1000).toFixed(1)} אלף ק"מ` : `${Math.round(m.km / 10) * 10} ק"מ`;
+        return `<div class="marker ${m.kind ?? ''}" style="left:${x.toFixed(1)}%;top:${y.toFixed(1)}%"><svg class="marrow" viewBox="0 0 10 10" style="transform:rotate(${m.rel.toFixed(0)}deg)"><path d="M5 0L10 10L5 7.5L0 10Z" fill="currentColor"/></svg>${esc(m.name)} <small>${km.replace(/[\d.]+/, (d) => b(d))}</small></div>`;
+      })
+      .join('');
+  }
+
   setTutorial(line: string | null) {
     // never over an open panel, where it would cover Tzila
     this.els.bubble.hidden = !line || this.modalOpen();
@@ -258,7 +319,7 @@ export class Hud {
     const t = this.els.toast;
     t.className = `toast ${kind}`;
     const icon = kind === 'ok' ? '✔ ' : kind === 'miss' ? '✖ ' : '';
-    t.innerHTML = icon + html;
+    t.innerHTML = icon + ltrNums(html);
     t.hidden = false;
     clearTimeout(this.toastTimer);
     this.toastTimer = window.setTimeout(() => (t.hidden = true), ms);
@@ -308,15 +369,22 @@ export class Hud {
         <h3>🛏️ תא שינה</h3>
         <p>בחרי לכמה זמן לישון — הזמן בעולם ימשיך קדימה.</p>
         <div class="row">
-          <button class="step" id="sMinus" aria-label="פחות">›</button>
+          <button class="step small" id="sMinus6" dir="ltr" aria-label="פחות 6">−6</button>
+          <button class="step" id="sMinus" aria-label="פחות">−</button>
           <output class="num" id="sNum">${b(this.sleepHours)}</output>
-          <button class="step" id="sPlus" aria-label="יותר">‹</button>
+          <button class="step" id="sPlus" aria-label="יותר">+</button>
+          <button class="step small" id="sPlus6" dir="ltr" aria-label="יותר 6">+6</button>
           ${
             lvl.sleep!.allowDays
               ? `<div class="toggle" role="group" aria-label="יחידות"><button id="uH" class="${this.sleepDays ? '' : 'on'}" aria-pressed="${!this.sleepDays}">שעות</button><button id="uD" class="${this.sleepDays ? 'on' : ''}" aria-pressed="${this.sleepDays}">ימים</button></div>`
               : `<span class="unit">${unit}</span>`
           }
         </div>
+        ${
+          this.sleepDays
+            ? `<div class="row extra"><span>ועוד</span><button class="step" id="xMinus" aria-label="פחות שעות">−</button><output class="num small" id="xNum">${b(this.sleepExtra)}</output><button class="step" id="xPlus" aria-label="יותר שעות">+</button><span>שעות</span></div>`
+            : ''
+        }
         <button class="go" data-a="sleep-commit">🛏️ לישון!</button>
         <p class="warn">⚠ אי אפשר לבטל</p>
         <button class="ghost close" data-a="sleep-cancel">חזרה</button>
@@ -324,6 +392,12 @@ export class Hud {
     const q = (id: string) => this.els.sleepPanel.querySelector<HTMLElement>('#' + id);
     q('sMinus')!.onclick = () => this.bumpSleep(-1);
     q('sPlus')!.onclick = () => this.bumpSleep(1);
+    q('sMinus6')!.onclick = () => this.bumpSleep(-6);
+    q('sPlus6')!.onclick = () => this.bumpSleep(6);
+    if (q('xMinus')) {
+      q('xMinus')!.onclick = () => ((this.sleepExtra = Math.max(0, this.sleepExtra - 1)), this.renderSleep());
+      q('xPlus')!.onclick = () => ((this.sleepExtra = Math.min(23, this.sleepExtra + 1)), this.renderSleep());
+    }
     if (q('uH')) {
       q('uH')!.onclick = () => ((this.sleepDays = false), this.renderSleep());
       q('uD')!.onclick = () => ((this.sleepDays = true), (this.sleepHours = Math.min(this.sleepHours, 7)), this.renderSleep());
@@ -338,12 +412,17 @@ export class Hud {
 
   commitSleep() {
     if (this.els.sleepPanel.hidden) return;
-    const hours = this.sleepDays ? this.sleepHours * 24 : this.sleepHours;
+    const hours = this.sleepDays ? this.sleepHours * 24 + this.sleepExtra : this.sleepHours;
     this.els.sleepPanel.hidden = true;
     this.onAction('sleep-commit', hours);
   }
 
   // ---------------------------------------------------------------- calendar train
+
+  /** Option index of the n-th card on screen (number keys follow the card order). */
+  trainIndex(n: number): number | undefined {
+    return this.trainOrder[n];
+  }
 
   openTrain(choices: TicketChoice[], left: number) {
     this.trainChoices = choices;
@@ -353,15 +432,19 @@ export class Hud {
   }
 
   private renderTrain(left: number) {
-    const per = 4;
+    // as many cards as fit on one row next to the page arrows (2x2 on a phone)
+    const w = window.innerWidth;
+    const per = w < 700 ? 4 : Math.max(3, Math.min(6, Math.floor((w * 0.92 - 170) / 142)));
     const pages = Math.ceil(this.trainChoices.length / per);
-    const slice = this.trainChoices.slice(this.trainPage * per, this.trainPage * per + per);
+    // cards in date order (soonest first); each keeps its option index for the sim
+    this.trainOrder = this.trainChoices.map((_c, i) => i).sort((a, b2) => this.trainChoices[a].days - this.trainChoices[b2].days);
+    const slice = this.trainOrder.slice(this.trainPage * per, this.trainPage * per + per).map((i) => ({ c: this.trainChoices[i], i }));
     const moon = this.level?.tickets?.options.some((o) => o.kind !== 'date');
     const newMoon = this.level?.tickets?.options.some((o) => o.kind === 'newmoon');
     const cards = slice
-      .map((c, k) => {
-        const i = this.trainPage * per + k;
-        const label = c.label || `כרטיס ${String.fromCharCode(0x5d0 + i)}`;
+      .map(({ c, i }, k) => {
+        const n = this.trainPage * per + k;
+        const label = c.label || `כרטיס ${TICKET_LETTERS[n] ?? n + 1}`;
         return `<button class="ticket" data-a="ticket" data-arg="${i}"><span class="tl2">${esc(label)}</span>${moon ? moonIcon(c.moonAge) : ''}${newMoon ? nodeIcon(c.L) : seasonIcon(c.L)}<span class="days">${b('+' + c.days)} ימים</span></button>`;
       })
       .join('');
@@ -370,9 +453,9 @@ export class Hud {
         <h3>🚂 רכבת הלוח</h3>
         <p>בחרי תאריך: הרכבת נוסעת קדימה בזמן עד אליו, ושומרת על השעה ביום.</p>
         <div class="tickets">
-          ${pages > 1 ? `<button class="step" id="tPrev" aria-label="הקודמים" ${this.trainPage === 0 ? 'disabled' : ''}>›</button>` : ''}
+          ${pages > 1 ? `<button class="step" id="tPrev" dir="ltr" aria-label="הקודמים" ${this.trainPage === 0 ? 'disabled' : ''}>›</button>` : ''}
           ${cards}
-          ${pages > 1 ? `<button class="step" id="tNext" aria-label="הבאים" ${this.trainPage >= pages - 1 ? 'disabled' : ''}>‹</button>` : ''}
+          ${pages > 1 ? `<button class="step" id="tNext" dir="ltr" aria-label="הבאים" ${this.trainPage >= pages - 1 ? 'disabled' : ''}>‹</button>` : ''}
         </div>
         <div class="row foot"><span class="pill">🎫 כרטיסים: ${b(left)}</span><span class="note">כרטיס לכיוון אחד</span></div>
         <button class="ghost close" data-a="train-cancel">חזרה</button>
@@ -413,6 +496,9 @@ export class Hud {
 
   showIntro(level: LevelDef) {
     const extra: string[] = [];
+    const touch = window.matchMedia?.('(pointer: coarse)').matches;
+    if (level.id === 1 || level.id >= 100)
+      extra.push(touch ? '🕹️ ג׳ויסטיק משמאל: ריצה ופנייה · כפתור המצלמה: צילום' : `⌨️ ריצה: ${b('W')} או ${b('↑')} · פנייה: ${b('A/D')} · צילום: ${b('E')} · קפיצה: ${b('Space')}`);
     if (level.sleep) extra.push(`🛏️ תא שינה (${b('Z')}): בוחרים מראש כמה לישון — אי אפשר לבטל.`);
     if (level.tickets) extra.push(`🚂 רכבת הלוח (${b('C')}, בתחנה): ${level.tickets.count === 1 ? 'כרטיס אחד' : `${b(level.tickets.count)} כרטיסים`} לכיוון אחד.`);
     if (level.rails?.length) extra.push(`🧲 מגפיים מגנטיות: קפיצה (${b('Space')}) על קו רוחב מסומן = גלישה מהירה.`);
