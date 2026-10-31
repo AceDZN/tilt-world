@@ -17,4 +17,8 @@ Original prompt: build **Tilt World — עולם נטוי**, a real 3D web geogr
 - Visual review: `npm run shots` captures real frames into `scratch/visual-review/`. Fixes from it: Sun against the true limb, landmarks stepping aside, bear only after sunset, buried mountain plinth, menu badges, closer framing under panels, Zzz for a dead battery and sleeping cities.
 - README, LEVELS.md and docs/VISUAL_REVIEW.md written.
 - Independent playtest (PLAYTEST.md): every P1 and P2 fixed. Changes: the clock freezes in dialogs, the eclipse text knows when the eclipse comes, waypoint chips for places and the Moon's shadow, L1 key teaching, RTL numbers, Hebrew counts, sorted ticket cards, the camera looks up at a high Moon, a better sleep picker, phone layout, and the L16 tide gauge.
-- Open (from PLAYTEST P3): 15-minute sleep steps or a faster idle clock, fireworks in L5, clock/inset date agreement at midnight, a finale closing card, moon azimuth and local date in `render_game_to_text`, bigger ticket diagrams, more quest kinds.
+- Screenshots were removed from the repo; they are captured only into the git-ignored `scratch/`.
+- PLAYTEST P3 fixed: order card hidden under result cards, green done notes, fail icons by cause, the L14 line, 15-minute sleep steps, L5 fireworks, matching clock and inset dates, a finale closing card, local date and moon azimuth in `render_game_to_text`, bigger ticket cards, and a clearer L16 tide line.
+- From the smoke run: L13's sun sight gets a toggle chip, so touch players can use it (keyboard: hold Q), with a readable readout; the L5 fireworks are round sparks.
+- `npm run smoke`: a headless browser smoke test across all 18 levels and a random quest.
+- Open: more quest kinds (polar night, equinox pairs, tides), a richer world map, a teacher view. The pushed git history still holds the old screenshots (about 71 MB); removing them needs a force-push.

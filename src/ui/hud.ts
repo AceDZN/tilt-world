@@ -11,6 +11,7 @@ export type HudAction =
   | 'resume'
   | 'mute'
   | 'restart'
+  | 'sight'
   | 'menu'
   | 'next'
   | 'shoot'
@@ -233,6 +234,7 @@ export class Hud {
     if (level.sleep) acts.push(`<button class="act" data-a="sleep-open"><span class="k">${b('Z')}</span>תא שינה</button>`);
     if (level.tickets) acts.push(`<button class="act" data-a="train-open" id="trainBtn"><span class="k">${b('C')}</span>רכבת הלוח</button>`);
     if (level.shots.some((s) => s.tripod)) acts.push(`<button class="act" data-a="plant"><span class="k">${b('P')}</span>חצובה</button>`);
+    if (level.special?.kind === 'whereami') acts.push(`<button class="act" data-a="sight" id="sightBtn"><span class="k">${b('Q')}</span>כוונת שמש</button>`);
     if (level.special?.kind === 'whereami')
       GEAR_NAMES.forEach((g, i) => acts.push(`<button class="act gear" data-a="gear" data-arg="${i}"><span class="k">${b(i + 1)}</span>${g}</button>`));
     if (level.special?.kind === 'impossible') acts.push(`<button class="act" data-a="impossible" id="impBtn"><span class="k">${b('X')}</span>"ירח מלא בצהריים"? בלתי אפשרי!</button>`);
@@ -327,7 +329,7 @@ export class Hud {
 
   sight(html: string | null) {
     this.els.sight.hidden = !html;
-    if (html) this.els.sight.innerHTML = html;
+    if (html) this.els.sight.innerHTML = `<div>${html}</div>`;
   }
 
   flash() {
@@ -362,8 +364,12 @@ export class Hud {
   private renderSleep() {
     const lvl = this.level!;
     const max = this.sleepDays ? 30 : lvl.sleep!.maxHours;
-    this.sleepHours = Math.max(1, Math.min(max, this.sleepHours));
-    const unit = this.sleepDays ? 'ימים' : 'שעות';
+    this.sleepHours = Math.max(this.sleepDays ? 1 : 0.25, Math.min(max, Math.round(this.sleepHours * 4) / 4));
+    if (this.sleepDays) this.sleepHours = Math.round(this.sleepHours);
+    // under an hour reads as minutes, quarters as h:mm
+    const v = this.sleepHours;
+    const shown = this.sleepDays || Number.isInteger(v) ? String(v) : v < 1 ? String(v * 60) : `${Math.floor(v)}:${String((v % 1) * 60).padStart(2, '0')}`;
+    const unit = this.sleepDays ? 'ימים' : v < 1 ? 'דקות' : 'שעות';
     this.els.sleepPanel.innerHTML = `
       <div class="panel">
         <h3>🛏️ תא שינה</h3>
@@ -371,12 +377,12 @@ export class Hud {
         <div class="row">
           <button class="step small" id="sMinus6" dir="ltr" aria-label="פחות 6">−6</button>
           <button class="step" id="sMinus" aria-label="פחות">−</button>
-          <output class="num" id="sNum">${b(this.sleepHours)}</output>
+          <output class="num" id="sNum">${b(shown)}</output>
           <button class="step" id="sPlus" aria-label="יותר">+</button>
           <button class="step small" id="sPlus6" dir="ltr" aria-label="יותר 6">+6</button>
           ${
             lvl.sleep!.allowDays
-              ? `<div class="toggle" role="group" aria-label="יחידות"><button id="uH" class="${this.sleepDays ? '' : 'on'}" aria-pressed="${!this.sleepDays}">שעות</button><button id="uD" class="${this.sleepDays ? 'on' : ''}" aria-pressed="${this.sleepDays}">ימים</button></div>`
+              ? `${v < 1 && !this.sleepDays ? '<span class="unit">דקות</span>' : ''}<div class="toggle" role="group" aria-label="יחידות"><button id="uH" class="${this.sleepDays ? '' : 'on'}" aria-pressed="${!this.sleepDays}">שעות</button><button id="uD" class="${this.sleepDays ? 'on' : ''}" aria-pressed="${this.sleepDays}">ימים</button></div>`
               : `<span class="unit">${unit}</span>`
           }
         </div>
@@ -406,7 +412,9 @@ export class Hud {
 
   bumpSleep(d: number) {
     if (this.els.sleepPanel.hidden) return;
-    this.sleepHours += d;
+    // single steps are 15 minutes below two hours, so short gaps (20:00 fireworks, moonrise) can be closed
+    const fine = !this.sleepDays && Math.abs(d) === 1 && (d < 0 ? this.sleepHours <= 2 : this.sleepHours < 2);
+    this.sleepHours += fine ? d * 0.25 : d;
     this.renderSleep();
   }
 
@@ -434,7 +442,7 @@ export class Hud {
   private renderTrain(left: number) {
     // as many cards as fit on one row next to the page arrows (2x2 on a phone)
     const w = window.innerWidth;
-    const per = w < 700 ? 4 : Math.max(3, Math.min(6, Math.floor((w * 0.92 - 170) / 142)));
+    const per = w < 700 ? 4 : Math.max(3, Math.min(6, Math.floor((w * 0.92 - 170) / 160)));
     const pages = Math.ceil(this.trainChoices.length / per);
     // cards in date order (soonest first); each keeps its option index for the sim
     this.trainOrder = this.trainChoices.map((_c, i) => i).sort((a, b2) => this.trainChoices[a].days - this.trainChoices[b2].days);
@@ -468,10 +476,10 @@ export class Hud {
 
   // ---------------------------------------------------------------- results and pause
 
-  showFail(title: string, why: string, rule: string, extra = '') {
+  showFail(title: string, why: string, rule: string, extra = '', icon = '💤') {
     this.els.result.innerHTML = `
       <div class="panel result fail">
-        <h3>💤 ${esc(title)}</h3>
+        <h3>${icon} ${esc(title)}</h3>
         <p class="why">${esc(why)}</p>
         ${extra}
         <p class="rule"><strong>הכלל:</strong> ${esc(rule)}</p>
@@ -488,6 +496,11 @@ export class Hud {
         <div class="bigstars">${stars(nStars)}</div>
         <ul class="why">${lines.map((l) => `<li>${l}</li>`).join('')}</ul>
         <p class="rule"><strong>הכלל:</strong> ${esc(level.rule)}</p>
+        ${
+          level.id === LEVELS.length
+            ? `<div class="finale"><h3>🌍 סיימת את עולם נטוי!</h3><p>צילה צילמה זריחות ושקיעות, שמש חצות ולילה קוטבי, קרן אנכית, גאות ושפל, מופעי ירח ושני ליקויים — בלי להזיז את כדור הארץ, את השמש או את הירח אפילו פעם אחת. רק ריצה, שינה וכרטיסים לכיוון אחד.</p><p class="small">רוצה עוד? בתפריט יש משימות צילום אקראיות, כל אחת נבדקה שיש לה פתרון.</p></div>`
+            : ''
+        }
         <div class="row">${hasNext ? `<button class="go" data-a="next">${level.id >= 100 ? 'משימה חדשה' : 'לשלב הבא'} ←</button>` : ''}<button class="ghost" data-a="restart">שוב</button><button class="ghost" data-a="menu">לתפריט</button></div>
       </div>`;
     this.els.result.hidden = false;

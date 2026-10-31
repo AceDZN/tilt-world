@@ -70,12 +70,14 @@ bdi { unicode-bidi: isolate; }
 .toast.miss { border-color: var(--bad); }
 
 .sight { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 260px; height: 260px; border-radius: 50%; border: 3px dashed rgba(255, 220, 120, 0.85); display: grid; place-items: center; text-align: center; font-size: 18px; font-weight: 600; background: radial-gradient(circle, rgba(10, 16, 40, 0.15), rgba(10, 16, 40, 0.55)); text-shadow: 0 1px 4px #000; }
+.sight bdi { font-size: 30px; font-weight: 700; color: #ffe08a; }
 
 .actions { position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 70vw; }
 .act { background: var(--navy); border: 1px solid var(--edge); border-radius: 14px; padding: 8px 14px; font-size: 15px; font-weight: 600; display: flex; gap: 8px; align-items: center; }
 .act:disabled { opacity: 0.45; cursor: default; }
 .act.ghosty { background: rgba(14, 20, 48, 0.55); font-weight: 500; }
 .act.gear { border-color: var(--accent2); }
+.act.on { background: var(--accent2); color: #1b1530; }
 .k { font-size: 12px; background: rgba(255, 255, 255, 0.14); border-radius: 6px; padding: 1px 6px; font-weight: 500; }
 .shutter { position: absolute; bottom: 18px; right: 18px; width: 84px; height: 84px; border-radius: 50%; border: 4px solid var(--accent); background: radial-gradient(circle, #3a2a2a, #1a1220); display: grid; place-items: center; box-shadow: 0 0 22px rgba(255, 138, 61, 0.55); }
 .shutter svg { width: 46px; }
@@ -105,11 +107,11 @@ bdi { unicode-bidi: isolate; }
 .close { margin-top: 6px; }
 .warn { color: #ffb4b4 !important; font-weight: 600; }
 .train .tickets { display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; }
-.ticket { width: 132px; background: #fff3d6; color: #3a2a12; border: 2px solid #e2c48a; border-radius: 12px; padding: 8px 6px; display: flex; flex-direction: column; align-items: center; gap: 4px; font-weight: 700; }
+.ticket { width: 150px; background: #fff3d6; color: #3a2a12; border: 2px solid #e2c48a; border-radius: 12px; padding: 8px 6px; display: flex; flex-direction: column; align-items: center; gap: 4px; font-weight: 700; }
 .ticket:hover, .ticket:focus-visible { border-color: #3aa0ff; box-shadow: 0 0 14px #3aa0ff; }
 .ticket .tl2 { font-size: 16px; }
 .ticket .days { font-size: 12px; font-weight: 500; color: #7a5a2a; }
-.season { width: 110px; background: #1a2350; border-radius: 8px; }
+.season { width: 134px; background: #1a2350; border-radius: 8px; }
 .moonico { width: 34px; }
 .foot .note { color: var(--muted); }
 .result .why { color: var(--ink); font-size: 18px; line-height: 1.5; max-width: 520px; margin: 8px auto; text-align: right; }
@@ -183,3 +185,9 @@ bdi { unicode-bidi: isolate; }
 .marker.shadow { border-color: #ffb02e; }
 .marker.shadow .marrow { color: #ffb02e; }
 @media (max-width: 700px) { .marker { font-size: 12px; padding: 2px 8px; max-width: 190px; } .marker small { display: none; } }
+/* the order card would sit under end/fail cards and cut their text */
+#ui:has(#result:not([hidden])) .tr, #ui:has(#pauseMenu:not([hidden])) .tr { visibility: hidden; }
+.order li.done em { display: inline-block; color: #1f7a4d; text-decoration: none; }
+.finale { margin: 10px auto 4px; max-width: 520px; padding: 12px 16px; border-radius: 14px; background: rgba(255, 200, 90, 0.12); border: 1px solid rgba(255, 200, 90, 0.5); }
+.finale h3 { color: #ffd25a; }
+.finale p { color: var(--ink); line-height: 1.5; }

@@ -45,6 +45,12 @@ npm run shots
 
 Recaptures the review frames into `scratch/visual-review/` (local only, git-ignored; needs the dev server).
 
+```bash
+npm run smoke
+```
+
+Browser smoke test (needs the dev server). It opens every level and a random quest in headless Chromium, checks that the sleep and train panels freeze the clock, plays three levels to the win card with the test bot, and fails on any console error. Frames go to the git-ignored `scratch/smoke/`.
+
 URL options: `?level=N` opens level N directly; `?all` unlocks every level.
 
 ## Controls
@@ -83,7 +89,8 @@ The Hebrew-layout letters on the same keys also work (ש/ד/ג/', ק, ז, ב…)
   - The PiP orbit inset shows the Earth's axis and the Moon's ring.
 - **HUD** (`src/ui/`):
   - Compass with N and `מזרח →`, battery, local clock and date, film counter, photo-order card, sleep and train panels.
-  - Win Polaroid captured from the real frame, and a fail card with the rule.
+  - Win Polaroid captured from the real frame, a fail card with the rule and an icon for the cause, and a closing card after the finale.
+  - Sleep pod in 15-minute steps below 2 hours; fireworks over Fiji and Samoa at 20:00 local in L5.
   - Waypoint chips (direction and distance) to every target place and to the Moon's shadow during an eclipse; a tide gauge in L16.
   - Numbers sit in `<bdi>`; feedback never relies on color alone (icons and words too).
 - **Replay:** solver-verified random photo quests (`src/game/quests.ts`, `tests/quests.test.ts`). "Always take the June ticket" and "run east forever" both fail.
@@ -93,7 +100,6 @@ The Hebrew-layout letters on the same keys also work (ש/ד/ג/', ק, ז, ב…)
 ## Planned / not done
 
 - More replay quest kinds (polar night, equinox pairs, tides).
-- Playtest P3 items: 15-minute sleep steps or a faster idle clock, fireworks in L5, a finale closing card, moon azimuth in `render_game_to_text` (see `PLAYTEST.md`).
 - A richer world map and props closer to the painterly mockups.
 - Teacher view and progress export.
 

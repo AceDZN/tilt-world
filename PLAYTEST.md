@@ -275,11 +275,20 @@ But two things undercut it:
 | P1 L1 never teaches the keys; the battery dies about 6 s after Enter | **Fixed** | The intro card shows the keys (or touch controls on a phone). The first tutorial line is the run key. The L1 clock is slower (0.15 h/s), so waiting dies in about 9 s instead of 6. Running east is still the only solution (tests). |
 | P2 numbers flip in RTL | **Fixed** | Every escaped HUD string wraps signed numbers, ranges, ° and % in LTR `bdi` ("15° לשעה", "+179 ימים"). A Hebrew prefix like "ב-6°C" is kept on one line and is not read as a minus. |
 | P2 Hebrew errors | **Fixed** | "שעה אחת / שעתיים / יומיים", "כרטיס אחד", counted end-card lines ("פספוס אחד", "התחייבות אחת"). Ticket letters skip the final forms (no "כרטיס ך"). |
-| P2 ticket cards | **Fixed** (diagram size unchanged) | Cards sorted soonest first, as many per page as fit (up to 6), and number keys follow the card order. Season icons go by orbit quadrant (Aug–Oct 🍂, Nov–Jan ❄, Feb–Apr ✿, May–Jul ☀). The page arrows no longer mirror. The L10 inset shows no date. |
+| P2 ticket cards | **Fixed** | Cards sorted soonest first, as many per page as fit (up to 6), and number keys follow the card order. Season icons go by orbit quadrant (Aug–Oct 🍂, Nov–Jan ❄, Feb–Apr ✿, May–Jul ☀). The page arrows no longer mirror. The L10 inset shows no date. |
 | P2 camera never tilts up | **Fixed** | World 4: standing still and facing a Moon more than 22° up, the camera looks up at it. Totality: it looks up at the eclipsed Sun. |
 | P2 sleep picker | **Fixed** | − / + and −6 / +6 buttons (forced LTR, so the labels don't mirror). In days mode, "ועוד N שעות" makes days plus hours one commitment. |
 | P2 phone layout | **Fixed** | Action chips stack on the right above the shutter, clear of the joystick. The order card keeps only the checklist (the brief was on the intro card) and stays out of the compass column. Waypoint chips stay inside the screen. See `scratch/visual-review/08-phone-l12.png` and `09-phone-l15.png`. |
-| P2 L16 no tide reading | **Fixed** | The clock pill shows a tide gauge: "🌊 −3.1 מ' ✔ השביל יבש" or "✖ השביל מוצף (נפתח מתחת ל--2.5)". |
+| P2 L16 no tide reading | **Fixed** | The clock pill shows a tide gauge: "🌊 −3.1 מ' ✔ השביל יבש" or "✖ השביל מוצף (נפתח בגובה −2.5 מ' ומטה)". |
 | P3-6 H shows only the grid | **Fixed** | H also shows the level's hint sentence for 6 s. |
 | P3-9 end card shows "•" and "★" | **Fixed** | The list has no bullets. |
-| P3-1…5, 7, 8, 10, 11 | Open | Listed in `progress.md` as follow-ups. |
+| P3-1 cards cover the order card | **Fixed** | The order card and the tutorial bubble hide while a result or pause card is open. |
+| P3-2 red strikethrough on done notes | **Fixed** | Done notes are green with a ✔, not struck through. |
+| P3-3 💤 for a wave | **Fixed** | Fail cards pick an icon by cause: 🌊 wave, 🐻‍❄️ bear, 💤 battery, 🌙 wrong time, 📐 tripod, 🧳 gear, 🎞️ film. |
+| P3-4 L14 "(70°)" | **Fixed** | "נשארת בקו רוחב 70°, מצפון לחוג הקוטב (66.5°): …". |
+| P3-5 idle waits | **Fixed** | Below 2 hours the sleep pod steps in 15 minutes (minimum 15 min), shown as minutes or h:mm. |
+| P3-7 no fireworks in L5 | **Fixed** | Fireworks burst over Fiji and Samoa for half an hour around 20:00 local, on that island's 31 October only. |
+| P3-8 clock and inset dates differ | **Fixed** | The inset shows the same local date as the clock. |
+| P3-10 finale has no ending | **Fixed** | Winning L18 adds a closing card: the four worlds, what Tzila learned, and the random quests. |
+| P3-11 test API date, moon azimuth | **Fixed** | `render_game_to_text().date` is the HUD's local date; `moon.azimuth` is included. |
+| Ticket diagrams small | **Fixed** | Ticket cards are 150 px wide, with bigger orbit pictures. |

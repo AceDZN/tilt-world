@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import {
   angularDistance,
   latLonToVec,
+  localDayIndex,
   moonDirection,
   solarEclipseCenter,
   sunDirection,
@@ -182,6 +183,8 @@ export class World {
   private tmpSeg = new THREE.Vector3();
   /** During totality the camera looks up at the black Sun instead of along the ground. */
   private skyTarget: THREE.Vector3 | null = null;
+  /** L5: fireworks over each island at 20:00 local on 31 October. */
+  private fireworks: { pts: THREE.Points; lon: number; seeds: Float32Array }[] = [];
   /** "Z z z" over Tzila when her battery dies, and over city places while it is night there. */
   private zzz = labelSprite('Z z z', '#cfe0ff', 'rgba(14,20,48,0.55)');
   private cityZzz: { obj: THREE.Sprite; up: THREE.Vector3 }[] = [];
@@ -285,6 +288,7 @@ export class World {
     this.bear = null;
     this.nearFade = [];
     this.cityZzz = [];
+    this.fireworks = [];
     const u = this.planet.uniforms;
     u.gridOn.value = 0;
     u.hintMeridian.value = -999;
@@ -362,6 +366,33 @@ export class World {
       }
       this.water = cap(sp.to.lat, sp.to.lon, ab, PLANET_R + 0.02, new THREE.MeshStandardMaterial({ color: 0x2f8fd0, transparent: true, opacity: 0.82, roughness: 0.15, metalness: 0.1 }));
       this.props.add(this.water);
+    }
+    if (level.id === 5) {
+      const sparkTex = glowTexture('rgba(255,255,255,1)', 'rgba(255,255,255,0.35)');
+      const N = 150;
+      for (const p of level.places) {
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(N * 3), 3));
+        const col = new Float32Array(N * 3);
+        const seeds = new Float32Array(N * 4);
+        const palette = [0xffd25a, 0xff6b8a, 0x7fe3ff, 0x9dff7f, 0xffffff].map((c) => new THREE.Color(c));
+        for (let i = 0; i < N; i++) {
+          const burst = i % 3;
+          const c = palette[(burst * 2 + (i % 2)) % palette.length];
+          col.set([c.r, c.g, c.b], i * 3);
+          // direction on a sphere, burst index, speed
+          const z = Math.random() * 2 - 1;
+          const a = Math.random() * Math.PI * 2;
+          seeds.set([Math.sqrt(1 - z * z) * Math.cos(a), z, Math.sqrt(1 - z * z) * Math.sin(a), burst], i * 4);
+        }
+        geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+        const pts = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.16, map: sparkTex, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+        placeOnPlanet(pts, p.lat, p.lon, 0, 0.9);
+        pts.visible = false;
+        pts.frustumCulled = false;
+        this.props.add(pts);
+        this.fireworks.push({ pts, lon: p.lon, seeds });
+      }
     }
     if (sp?.kind === 'bear') {
       const cabin = level.places.find((p) => p.id === sp.place);
@@ -507,6 +538,23 @@ export class World {
       this.water.scale.setScalar(1 + (tide - lvl.special.openBelow) * 0.0009);
       const open = tide <= lvl.special.openBelow;
       (this.water.material as THREE.MeshStandardMaterial).opacity = open ? 0.0 : 0.82;
+    }
+    for (const f of this.fireworks) {
+      const local = (((utc + f.lon / 15) % 24) + 24) % 24;
+      const on = localDayIndex(utc, f.lon) === 0 && Math.abs(local - 20) < 0.5;
+      f.pts.visible = on;
+      if (!on) continue;
+      const pos = f.pts.geometry.attributes.position as THREE.BufferAttribute;
+      for (let i = 0; i < pos.count; i++) {
+        const b = f.seeds[i * 4 + 3];
+        const ph = (t * 0.55 + b / 3) % 1; // each burst expands and falls, staggered
+        const r = 0.45 * Math.sqrt(ph);
+        const cx = (b - 1) * 0.35;
+        const cy = 0.25 * b;
+        pos.setXYZ(i, cx + f.seeds[i * 4] * r, cy + f.seeds[i * 4 + 1] * r - ph * ph * 0.25, f.seeds[i * 4 + 2] * r);
+      }
+      pos.needsUpdate = true;
+      (f.pts.material as THREE.PointsMaterial).opacity = 1 - (t * 0.55) % 1 * 0.6;
     }
     // sleepy cities and a sleeping robot
     for (const z of this.cityZzz) z.obj.visible = z.up.dot(sun) < -0.1;

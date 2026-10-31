@@ -74,6 +74,7 @@ let st: SimState | null = null;
 let paused = false;
 let cameraMode: 'chase' | 'space' = 'chase';
 let gridOn = false;
+let sightOn = false; // touch toggle for the sun sight (keyboard: hold Q)
 let pending: Partial<Input> = {};
 let seenEvents = 0;
 let displayUtc = 0;
@@ -167,6 +168,7 @@ function startLevelDef(level: LevelDef) {
   captureWin = false;
   cameraMode = 'chase';
   gridOn = false;
+  sightOn = false;
   hud.hideMenu();
   hud.setLevel(level, saved.stars[id] ?? 0);
   hud.setTutorial(null);
@@ -265,6 +267,9 @@ function onAction(a: HudAction, arg?: number) {
       break;
     case 'camera':
       cameraMode = cameraMode === 'chase' ? 'space' : 'chase';
+      break;
+    case 'sight':
+      sightOn = !sightOn;
       break;
   }
 }
@@ -473,11 +478,13 @@ const FAIL_TITLES: Record<string, string> = {
   gear: 'הציוד לא התאים',
 };
 
+const FAIL_ICONS: Record<string, string> = { battery: '💤', time: '🌙', film: '🎞️', bear: '🐻‍❄️', wave: '🌊', tripod: '📐', gear: '🧳' };
+
 function showResult() {
   if (!st) return;
   if (st.mode === 'failed') {
     const why = [...st.events].reverse().find((e) => e.kind === 'fail')?.text ?? '';
-    hud.showFail(FAIL_TITLES[st.fail?.kind ?? 'time'], why, st.level.rule);
+    hud.showFail(FAIL_TITLES[st.fail?.kind ?? 'time'], why, st.level.rule, '', FAIL_ICONS[st.fail?.kind ?? 'time'] ?? '💤');
   } else if (st.mode === 'won') {
     if (captureWin) render();
     const lvl = st.level;
@@ -503,8 +510,9 @@ function showResult() {
 function fmtHours(h: number) {
   if (h >= 48 && h % 24 === 0) return h === 48 ? 'יומיים' : `${h / 24} ימים`;
   if (h === 24) return 'יממה';
-  const r = Math.round(h * 10) / 10;
-  return r === 1 ? 'שעה אחת' : r === 2 ? 'שעתיים' : `${r} שעות`;
+  if (h < 1) return `${Math.round(h * 60)} דקות`;
+  if (!Number.isInteger(h)) return `${Math.floor(h)}:${String(Math.round((h % 1) * 60)).padStart(2, '0')} שעות`;
+  return h === 1 ? 'שעה אחת' : h === 2 ? 'שעתיים' : `${h} שעות`;
 }
 
 /** Hebrew count phrase: (1, 'שינה', 'שינות') → 'שינה אחת'. */
@@ -542,9 +550,11 @@ function updateHud() {
     // a tide gauge, so the crossing is a reading, not a guess
     const tide = causewayTide(st);
     const open = tide <= lvl.special.openBelow;
-    clock += ` · 🌊 ${b(tide.toFixed(1))} מ' ${open ? '✔ השביל יבש' : `✖ השביל מוצף (נפתח מתחת ל-${b(String(lvl.special.openBelow))})`}`;
+    clock += ` · 🌊 ${b(tide.toFixed(1))} מ' ${open ? '✔ השביל יבש' : `✖ השביל מוצף (נפתח בגובה ${b(String(lvl.special.openBelow))} מ' ומטה)`}`;
   }
   const shots = lvl.shots.map((s) => ({ label: s.label, done: !!st!.taken[s.id], value: notes[s.id] }));
+  // the inset shows the same calendar day as the clock (it used to flip at UTC midnight)
+  const insetDay = lvl.clock === 'local' ? localDateLabel(lvl, displayUtc, lon) : dateLabel(L);
   const sp = lvl.special;
   hud.update({
     facing: facingAzimuth(st),
@@ -559,7 +569,7 @@ function updateHud() {
     rounds: sp?.kind === 'whereami' ? { got: st.round, of: sp.rounds.length } : undefined,
     impossible: sp?.kind === 'impossible' ? st.impossibleDeclared : undefined,
     // L10 promises no month names: the hill's shadow is the only calendar
-    insetDate: lvl.clock === 'sundial' ? '' : lvl.world === 4 ? `${dateLabel(L)} · ${PHASE_NAMES[phaseIndex(st.moonAge)]}` : dateLabel(L),
+    insetDate: lvl.clock === 'sundial' ? '' : lvl.world === 4 ? `${insetDay} · ${PHASE_NAMES[phaseIndex(st.moonAge)]}` : insetDay,
   });
   // waypoints to every place you are not at, and to the Moon's shadow while it is on the Earth
   const face = facingAzimuth(st);
@@ -578,7 +588,8 @@ function updateHud() {
   }
   hud.markers(marks);
   // sun sight (hold Q)
-  if (controls.held('q', '/') && st.mode === 'play') {
+  document.getElementById('sightBtn')?.classList.toggle('on', sightOn);
+  if ((sightOn || controls.held('q', '/')) && st.mode === 'play') {
     const dir = sun.azimuth > 90 && sun.azimuth < 270 ? 'דרום' : 'צפון';
     const side = sun.azimuth < 180 ? 'מזרח' : 'מערב';
     hud.sight(
@@ -698,9 +709,9 @@ window.render_game_to_text = () => {
     pos: { lat: +c.lat.toFixed(2), lon: +c.lon.toFixed(2) },
     facing: +c.facing.toFixed(0),
     localTime: hhmm(c.localTime),
-    date: dateLabel(st.L),
+    date: localDateLabel(st.level, st.utc, c.lon),
     sun: { elevation: +c.sun.elevation.toFixed(1), azimuth: +c.sun.azimuth.toFixed(0) },
-    moon: { elevation: +c.moon.elevation.toFixed(1), phase: PHASE_NAMES[phaseIndex(st.moonAge)] },
+    moon: { elevation: +c.moon.elevation.toFixed(1), azimuth: +c.moon.azimuth.toFixed(0), phase: PHASE_NAMES[phaseIndex(st.moonAge)] },
     battery: +st.battery.toFixed(1),
     film: st.film,
     place: c.place?.id ?? null,
