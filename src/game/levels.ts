@@ -286,7 +286,7 @@ const L5: LevelDef = {
 const DATE_TICKETS = [0, 90, 180, 270].map((L) => ({ kind: 'date' as const, L }));
 
 export const hermonSnow = (L: number) => monthlyTemperature(33.4, L) < 10;
-export const sydneySummer = (L: number) => monthlyTemperature(-33.9, L) > 21;
+export const sydneySummer = (L: number) => monthlyTemperature(-33.9, L) > 22;
 const SYDNEY = place('sydney', 'החוף בסידני', -33.9, 151.2, 'beach', 2.4, { surface: 'sand' });
 const L6: LevelDef = {
   id: 6,
@@ -327,7 +327,7 @@ const L6: LevelDef = {
       },
     },
   ],
-  hint: 'הנקודה שבה השמש בדיוק מעל הראש מסומנת. באיזה חצי כדור היא בינואר?',
+  hint: 'הנקודה שבה השמש בדיוק מעל הראש מסומנת. מתי היא הכי רחוקה מהחרמון?',
   hintOverlay: { kind: 'subsolar' },
   tutorial: ['רכבת הלוח (C, בתחנה): כרטיס לכיוון אחד לתאריך. אי אפשר לחזור אחורה.'],
   explain: explainWith({}),
@@ -338,7 +338,7 @@ const GATE_TROPIC = place('gate-tropic', 'שער הקרח בחוג הסרטן', 
 const GATE_NORTH = place('gate-north', 'שער הקרח ב-40° צפון', 40, 33, 'gate', 1.5);
 function gateCheck(c: ShotCtx, id: string): ShotResult {
   if (!at(c, id)) {
-    if (at(c, 'gate-north')) return no('ב-40° צפון השמש אף פעם לא מגיעה לזנית — גם לא ב-21 ביוני. הצל נשאר.', 'shadow');
+    if (at(c, 'gate-north')) return no('ב-40° צפון השמש אף פעם לא מגיעה לזנית — בשום תאריך. הצל נשאר.', 'shadow');
     return away('צריך לעמוד מול שער הקרח.');
   }
   if (c.sun.elevation >= 87) return ok(Math.min(1, (c.sun.elevation - 85) / 5));
@@ -367,7 +367,7 @@ const L7: LevelDef = {
     { id: 'gate-eq', label: 'שער המשווה: שמש אנכית', check: (c) => gateCheck(c, 'gate-eq') },
     { id: 'gate-tropic', label: 'שער חוג הסרטן: שמש אנכית', check: (c) => gateCheck(c, 'gate-tropic') },
   ],
-  hint: 'הנקודה שבה השמש בזנית מסומנת. היא זזה עם התאריך — לא עם השעה.',
+  hint: 'הנקודה שבה השמש בזנית מסומנת. קו הרוחב שלה תלוי בתאריך; במשך היום היא רק נעה מערבה לאורכו.',
   hintOverlay: { kind: 'subsolar' },
   explain: explainWith({}),
 };
@@ -396,7 +396,8 @@ const L8: LevelDef = {
         if (!at(c, 'cabin')) return away('צריך להיות ליד הבקתה.');
         const t = c.localTime;
         if (!(t >= 23.5 || t <= 0.5)) return no(`השעה כאן ${hhmm(t)} — זו לא חצות.`);
-        if (c.sun.elevation <= 0.3) return no(`בחצות של ${dateLabel(c.L)} השמש ${fmt(-c.sun.elevation)}° מתחת לאופק.`);
+        if (c.sun.elevation <= 0.3)
+          return no(c.sun.elevation > -0.5 ? `בחצות של ${dateLabel(c.L)} השמש נוגעת באופק — אבל לא מעליו.` : `בחצות של ${dateLabel(c.L)} השמש ${fmt(-c.sun.elevation)}° מתחת לאופק.`);
         if (!facingSun(c)) return no('השמש לא בפריים. בחצות היא בצפון.');
         return ok(quality(c));
       },
@@ -522,8 +523,8 @@ const L11: LevelDef = {
     },
     { id: 'full', label: 'מד סוללה מלא', check: (c) => (c.battery >= 98 ? ok(1) : no(`הסוללה רק ב-${fmt(c.battery)}%.`)) },
   ],
-  hint: 'הנקודה שבה השמש אנכית מסומנת.',
-  hintOverlay: { kind: 'subsolar' },
+  hint: 'בדצמבר, איזה חצי כדור נוטה אל השמש? שם הקרניים הכי ישרות.',
+  hintOverlay: { kind: 'terminator' },
   explain: explainWith({
     time: () => 'בפינלנד בדצמבר השמש נמוכה: האור מתפזר והטעינה איטית. ב-22 בדצמבר הקרניים אנכיות מעל חוג הגדי.',
   }),
@@ -552,7 +553,7 @@ function extremeShot(c: ShotCtx, which: 'hot' | 'cold'): ShotResult {
   if (c.place!.id !== target.id)
     return no(
       which === 'hot'
-        ? `המצלמה התרמית: ${fmt(t)}°C. יש משטח חם יותר.${c.place!.id === 'lava' ? ' הלבה כהה — אבל השמש באיסלנד נמוכה יותר.' : ''}`
+        ? `המצלמה התרמית: ${fmt(t)}°C. יש משטח חם יותר.${c.place!.id === 'lava' ? ' הלבה כהה — אבל באיסלנד השמש נמוכה יותר והאוויר קר יותר.' : ''}`
         : `המצלמה התרמית: ${fmt(t)}°C. יש משטח קר יותר.`,
       undefined,
       1.2,
@@ -601,7 +602,7 @@ const L13: LevelDef = {
   world: 3,
   title: 'איפה אני?',
   brief: '21 ביוני. התעוררת במקום לא מוכר מתחת לעננים. מדדי את גובה שמש הצהריים בכוונת השמש (Q), הסיקי באיזה אזור אקלים את — ובחרי ציוד. שלוש פעמים.',
-  rule: 'גובה שמש הצהריים = 90° − (המרחק מקו הרוחב שבו השמש אנכית). ב-21 ביוני השמש אנכית מעל 23.5° צפון. בין החוגים — טרופי; מעבר לחוגי הקוטב — קוטבי; ביניהם — ממוזג.',
+  rule: '(העשרה) גובה שמש הצהריים = 90° − (המרחק מקו הרוחב שבו השמש אנכית). ב-21 ביוני השמש אנכית מעל 23.5° צפון. בין החוגים — טרופי; מעבר לחוגי הקוטב — קוטבי; ביניהם — ממוזג.',
   start: { lat: 10, lon: 100, heading: 0, utc: utcAt(9, 100), L: 90, battery: 100 },
   rate: 0.1,
   budgetHours: 80,
@@ -654,14 +655,14 @@ const L14: LevelDef = {
     battery: (f) =>
       f.lat > 66.5
         ? `נשארת מצפון לחוג הקוטב (${fmt(f.lat)}°): ב-22 בדצמבר השמש לא עולה שם בכלל.`
-        : 'הגעת דרומה מחוג הקוטב, אבל הצהריים — הרגע היחיד של אור כאן בדצמבר — עוד לא הגיעו. המסילה מזרחה מקדימה אותם.',
+        : 'הגעת דרומה מחוג הקוטב, אבל השעות הספורות של אור כאן בדצמבר — סביב הצהריים — עוד לא הגיעו. המסילה מזרחה מקדימה אותן.',
   }),
 };
 
 // ------------------------------------------------------------------ World 4: the Moon
 
 const ROOF = place('roof', 'גג בירושלים', 31.78, 35.22, 'roof', 1.6);
-const PHASE_LABELS = ['', 'סהר מתמלא', 'רבע ראשון', 'ירח מתמלא', 'ירח מלא', 'ירח מתמעט', 'רבע אחרון', 'סהר מתמעט'];
+const PHASE_LABELS = ['', 'סהר מתמלא', 'רבע ראשון (חצי ירח)', 'ירח מתמלא', 'ירח מלא', 'ירח מתמעט', 'רבע אחרון (חצי ירח)', 'סהר מתמעט'];
 const L15: LevelDef = {
   id: 15,
   world: 4,
@@ -691,7 +692,7 @@ const L15: LevelDef = {
       return ok(1);
     },
   })),
-  special: { kind: 'impossible', shotId: 'noon-full' },
+  special: { kind: 'impossible', shotId: 'noon-full', after: 'p4' },
   hint: 'הירח מואר מצד השמש. רבע ראשון: כשבוע אחרי המולד, נראה בשקיעה. מלא: כשבועיים, עולה בשקיעה.',
   explain: explainWith({}),
 };
@@ -705,8 +706,8 @@ const L16: LevelDef = {
   id: 16,
   world: 4,
   title: 'גאות ושפל',
-  brief: 'חצי את שביל הגאות אל אי המצודה וצלמי ממנו. אחר כך: שתי תמונות של החוף בתל אביב, בהפרש 3 שעות לפחות.',
-  rule: 'משיכת הירח יוצרת שתי בליטות מים: פעמיים ביום גאות ופעמיים שפל. בחופי האוקיינוס ההפרש מטרים; בים התיכון רק 20–40 ס"מ.',
+  brief: 'עברי בשביל הגאות אל אי המצודה וצלמי ממנו. אחר כך: שתי תמונות של החוף בתל אביב, בהפרש 3 שעות לפחות.',
+  rule: 'משיכת הירח יוצרת שתי בליטות מים: פעמיים ביום גאות ופעמיים שפל. בחופים מסוימים של האוקיינוס ההפרש מטרים; בים התיכון רק 20–40 ס"מ.',
   start: { lat: 49.9, lon: -1.5, heading: 180, utc: utcAt(8, -1.5), L: 0, moonAge: 7.38, battery: 100 },
   rate: 0.1,
   budgetHours: 20 * 24,
@@ -746,7 +747,7 @@ const L16: LevelDef = {
   hint: 'מד הגאות ליד השביל מראה את גובה המים. השפל העמוק ביותר בחודש מגיע סביב המולד והירח המלא (העשרה: גאות שיא).',
   hintOverlay: { kind: 'tide' },
   explain: explainWith({
-    wave: () => 'הגאות כיסתה את השביל. בחוף אוקיינוס המים עולים ויורדים מטרים, פעמיים ביום. בשפל של ירח מלא או מולד המים יורדים הכי נמוך.',
+    wave: () => 'הגאות כיסתה את השביל. בחוף אוקיינוס המים עולים ויורדים מטרים, פעמיים ביום. (העשרה) בשפל של ירח מלא או מולד המים יורדים הכי נמוך.',
   }),
 };
 
@@ -754,7 +755,7 @@ const L17: LevelDef = {
   id: 17,
   world: 4,
   title: 'ליקוי חמה',
-  brief: 'צלמי ליקוי חמה מלא. ברכבת הלוח יש כרטיסים ל-6 המולדים הבאים — יש לך שניים. איזה מולד נמצא על הקו?',
+  brief: 'צלמי ליקוי חמה מלא. ברכבת הלוח יש כרטיסים ל-6 המולדים הבאים — יש לך שניים. איזה מולד נופל ליד קו הצמתים?',
   rule: 'ליקוי חמה קורה במולד, כשהירח בין השמש לכדור הארץ. מסלול הירח נטוי 5°, ולכן ברוב החודשים הירח עובר מעל השמש או מתחתיה ואין ליקוי.',
   start: { lat: 0, lon: 0, heading: 90, utc: utcAt(9, 0), L: 68, moonAge: 4, battery: 90 },
   // A slow clock: the Moon's shadow crosses the Earth in about two hours.
@@ -776,7 +777,7 @@ const L17: LevelDef = {
         const center = solarEclipseCenter(c.utc, c.L, c.moonAge);
         if (!center) {
           const beta = moonEclipticLatitude(c.L, c.moonAge);
-          return no(`מולד — אבל הירח עובר ${beta > 0 ? 'מעל' : 'מתחת ל'}שמש: מסלולו נטוי 5° והצל מפספס את כדור הארץ החודש.`);
+          return no(`מולד — אבל הירח עובר ${beta > 0 ? 'מעל השמש' : 'מתחת לשמש'}: מסלולו נטוי 5° והצל מפספס את כדור הארץ החודש.`);
         }
         const d = angularDistance(c.lat, c.lon, center.lat, center.lon);
         if (d > TOTALITY_RADIUS) return no('יש ליקוי — אבל הצל נופל במקום אחר על הכדור. רוצי אליו!');
@@ -811,7 +812,7 @@ const L18: LevelDef = {
       label: 'ירח מלא של אביב מעל ירושלים',
       check: (c) => {
         if (!at(c, 'jerusalem')) return away('הצילום הזה מירושלים.');
-        if (!(wrap180(c.L) >= 0 && wrap180(c.L) < 90)) return no(`עכשיו ${dateLabel(c.L)} — זה לא אביב.`);
+        if (!(wrap180(c.L) >= 0 && wrap180(c.L) <= 35)) return no(`עכשיו ${dateLabel(c.L)}. ניסן חל באביב: הירח המלא של פסח הוא בין סוף מרץ לסוף אפריל.`);
         if (c.moonAge < 13.3 || c.moonAge > 16.3) return no('הירח לא מלא.');
         if (c.moon.elevation < 5 || c.sun.elevation > -4) return no('הירח לא נראה בשמיים עכשיו.');
         if (!facingMoon(c)) return no('הירח לא בפריים.');
@@ -825,7 +826,7 @@ const L18: LevelDef = {
         if (!at(c, 'jerusalem')) return away('הצילום הזה מירושלים.');
         if (c.sun.elevation < -0.5 || c.sun.elevation > 5 || !morning(c)) return no('זה לא רגע הזריחה.');
         if (!facingSun(c)) return no('השמש לא בפריים.');
-        if (!(wrap180(c.L) >= 0 && wrap180(c.L) < 90)) return no('זו לא זריחה של אביב.');
+        if (!(wrap180(c.L) >= 0 && wrap180(c.L) <= 35)) return no('זו לא זריחה של ליל הסדר: ניסן חל בין סוף מרץ לסוף אפריל.');
         const fm = c.taken.fullmoon;
         if (fm && Math.abs(wrap180(fm.L - c.L)) > 2) return no('הזריחה צריכה להיות סמוך לליל הירח המלא.');
         return ok(quality(c));

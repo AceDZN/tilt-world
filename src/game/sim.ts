@@ -60,6 +60,7 @@ export interface SimEvent {
     | 'dream'
     | 'gear-ok'
     | 'impossible-ok'
+    | 'impossible-early'
     | 'fail'
     | 'win';
   text?: string;
@@ -415,8 +416,8 @@ function chooseGear(st: SimState, gear: number) {
   if (gear !== zone) {
     st.lastWhy =
       gear < zone
-        ? `לבשת ${GEAR_NAMES[gear]} — אבל זה ${ZONE_NAMES[zone]}. צילה קפאה.`
-        : `לבשת ${GEAR_NAMES[gear]} — אבל זה ${ZONE_NAMES[zone]}. צילה נמסה מחום.`;
+        ? `בחרת ${GEAR_NAMES[gear]} — אבל זה ${ZONE_NAMES[zone]}. צילה קפאה.`
+        : `בחרת ${GEAR_NAMES[gear]} — אבל זה ${ZONE_NAMES[zone]}. צילה נמסה מחום.`;
     doFail(st, 'gear');
     return;
   }
@@ -466,7 +467,9 @@ export function step(st: SimState, input: Input, dt: number) {
     chooseGear(st, input.gear);
     if (st.mode !== 'play') return;
   }
-  if (input.declareImpossible && lvl.special?.kind === 'impossible' && !st.impossibleDeclared) {
+  if (input.declareImpossible && lvl.special?.kind === 'impossible' && !st.impossibleDeclared && lvl.special.after && !st.taken[lvl.special.after]) {
+    st.events.push({ t: st.realTime, kind: 'impossible-early' });
+  } else if (input.declareImpossible && lvl.special?.kind === 'impossible' && !st.impossibleDeclared) {
     st.impossibleDeclared = true;
     st.events.push({ t: st.realTime, kind: 'impossible-ok' });
   }

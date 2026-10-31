@@ -378,8 +378,10 @@ test('L15 seven phases from one rooftop with the sleep pod, and a full moon at n
   b.shoot();
   assert.match(lastText(b), /צילה מתבאסת/);
   b.press({ declareImpossible: true });
+  assert.equal(b.st.impossibleDeclared, false, 'declaring counts only after the full moon is in the album');
   for (let guard = 0; guard < 12 && b.alive && b.st.mode !== 'won'; guard++) {
     const need = b.st.level.shots.filter((s) => !b.st.taken[s.id]).map((s) => Number(s.id.slice(1)));
+    if (!need.length) break;
     const h = b.findHour((s) => need.includes(phaseIndex(s.age)) && s.moon.elevation > 10 && s.sun.elevation < -4, 1, 24 * 35);
     assert.ok(h > 0, `no window for ${need}`);
     b.sleep(h);
@@ -387,6 +389,8 @@ test('L15 seven phases from one rooftop with the sleep pod, and a full moon at n
     b.shoot();
     assert.equal(b.st.events.at(-1)?.kind === 'shot-miss', false, lastText(b));
   }
+  assert.equal(b.st.mode, 'play');
+  b.press({ declareImpossible: true });
   won(b);
 });
 

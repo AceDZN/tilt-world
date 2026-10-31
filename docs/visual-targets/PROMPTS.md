@@ -2,7 +2,7 @@
 
 These are **gameplay design targets generated before any scene code**, not captures of the implemented game. Copy the camera, silhouettes, scene occupancy, lighting mood and HUD hierarchy; do not copy the generated text, numbers or astronomy, which are often wrong (see each checklist).
 
-- **Route:** ChatGPT in the user's Chrome (Route A, claude-in-chrome extension, own tab), ChatGPT image generation, **one chat for all five images**. Composer model selector showed "Instant"; image generation ran inside it.
+- **Route:** ChatGPT in the user's Chrome (Route A, claude-in-chrome extension, own tab), ChatGPT image generation, **one chat for all seven images** (01–05 first, then 06–07 from the revision section of `VISUAL_PROMPTS.md`). Composer model selector showed "Instant"; image generation ran inside it.
 - **Chat URL:** https://chatgpt.com/c/6ae5df6f-d450-83ed-898d-a8a61e618f30
 - **Date:** 2026-10-31
 - **Output size:** 1672 × 941 PNG (ChatGPT's 16:9 output).
@@ -16,6 +16,10 @@ These are **gameplay design targets generated before any scene code**, not captu
 | `03-wrong-offset.png` | 1 | `73e589a17813b67816ed06a3899353d219ee85654613b8014e8d8a0ecefb3cad` |
 | `04-eclipse.png` | 1 | `259eceb1ce2f90a4c4f9df5e0f9e26b694aaabd971af9cc9ca7e859fac9e8edb` |
 | `05-world-map.png` | 1 | `ae404b85f47f6f7706da85a242b8a362c851142bcc733ca69f9c59c9986abaa6` |
+| `06-sleep-pod.png` | 1 | `fd053735e8d574dff77724353fde79a119d297150b60d87f56707049b6714334` |
+| `07-calendar-train.png` | 1 | `b11be64ca4861cc677d56794745d4c04910f2253522eaa05699d45d6cd8e2849` |
+
+> **Revision (2026-10-31): there are no orbit or Moon dials and no time scrubbing in the game.** The bottom-centre dial widgets in **02** and **04** (the orbit dial with month ring, `סיבובי חוגה` counter, and the `שלב הירח` / `מיקום במסלול` dials) are **OBSOLETE** — do not build them. Time moves forward only, via the sleep pod (06) and the calendar train (07). Everything else in 02/04 (scene, PiP inset, level pill, photo card, viewfinder, shutter) is still a valid target.
 
 Shared style line (appended to every prompt):
 
@@ -56,11 +60,11 @@ Shared style line (appended to every prompt):
 **What to copy:**
 - Character consistency: same Tzila (white/coral, lens face, solar panels) — confirms the model target.
 - Ground-level scene composition: robot + tripod left of centre, red snow-roofed log cabin far left (chimney smoke, glowing windows, a little sled), snowy pines, a white **cartoon polar bear cub** peeking from behind a snowy dark rock on the right. Golden low Sun with reflection on water, curved horizon beyond fjords/islands.
-- HUD: oval PiP orbit inset top left; level pill + stars top right; clock pill `00:00` with sun icon below it; photo-order card with icon and a sample photo; viewfinder brackets around the Sun; glowing shutter button bottom right; big circular orbit dial bottom centre with a mini Earth, month labels around it, an orange marker and a date tab `21 ביוני`, round arrow buttons left/right, counter pill.
+- HUD: oval PiP orbit inset top left; level pill + stars top right; clock pill `00:00` with sun icon below it; photo-order card with icon and a sample photo; viewfinder brackets around the Sun; glowing shutter button bottom right; ~~big circular orbit dial bottom centre with a mini Earth, month labels around it, an orange marker and a date tab `21 ביוני`, round arrow buttons left/right, counter pill.~~ **OBSOLETE — no dials (see revision note).**
 - Warm gold vs. deep blue twilight palette.
 
 **What's off:**
-- **Orbit dial month ring is broken:** `מאי` and `יולי` appear twice, `יוני` is missing from the ring, and the `21 ביוני` tab sits between דצמבר and ינואר. The real dial must place 12 months correctly with June under the marker.
+- (Obsolete widget, kept for the record.) **Orbit dial month ring is broken:** `מאי` and `יולי` appear twice, `יוני` is missing from the ring, and the `21 ביוני` tab sits between דצמבר and ינואר. The real dial must place 12 months correctly with June under the marker.
 - **PiP inset astronomy is wrong:** at the June position the axis top leans **away** from the Sun; it must lean toward it. The orbit is drawn as an off-centre ellipse with an extra white dot; keep it simple (circle, Sun centre).
 - The "axis" line rises from a mountain peak mid-planet, labelled `ציר כדור הארץ (23.5°)`, not through the north pole. The game draws the axis from model state.
 - Bidi flips: `שלב :8 שמש חצות` and `2/3 :סיבובי חוגה` (colon on the wrong side). Use `<bdi>` around numbers/fractions.
@@ -101,10 +105,10 @@ Shared style line (appended to every prompt):
 - The Moon's umbra as a large dark soft-edged ellipse lying on the sunlit ocean/coastline: exactly the look we want for the shadow spot.
 - Black Sun disk with white corona and diamond-ring flare high in the sky; stars only near the top.
 - Tzila on a rocky headland at left with her tripod and camera (same character again), ruined stone tower behind her.
-- Two side-by-side round dials bottom centre: `שלב הירח` with 8 phase icons and `מולד` highlighted (orange ring), and `מיקום במסלול` with months around an Earth; shared arrow buttons outside. Photo-order card top right with sample photo; PiP top left with Sun–Earth–Moon, a 5° tilted Moon orbit and `נקודת החציה (ליקוי אפשרי)` label.
+- ~~Two side-by-side round dials bottom centre~~ **(dials OBSOLETE — no dials, see revision note; the photo card and PiP in this line still apply)**: `שלב הירח` with 8 phase icons and `מולד` highlighted (orange ring), and `מיקום במסלול` with months around an Earth; shared arrow buttons outside. Photo-order card top right with sample photo; PiP top left with Sun–Earth–Moon, a 5° tilted Moon orbit and `נקודת החציה (ליקוי אפשרי)` label.
 
 **What's off:**
-- The orbit dial ring is broken again (`יולי` and `מאי` twice; no `יוני`, `ספטמבר`).
+- (Obsolete widget.) The orbit dial ring is broken again (`יולי` and `מאי` twice; no `יוני`, `ספטמבר`).
 - Phase labels are partly mismatched to their icons (e.g. the first-quarter/last-quarter halves). Draw phases from the model.
 - Sky near the horizon stays bright daylight blue; during totality it should go deep twilight all around, with a sunset-coloured ring at the horizon.
 - The Moon in the PiP is not on the crossing (node) point; it is drawn between Earth and the node.
@@ -132,3 +136,49 @@ Shared style line (appended to every prompt):
 - Worlds are dioramas around the globe rather than rings orbiting it; either is fine, but they must not hide the globe pins.
 - The Moon diorama includes a lunar lander with a US flag and the Sun diorama has pyramids; avoid national flags and keep worlds generic or tied to our levels.
 - The counter `19/72` implies 4 stars per level; the game uses 3 stars × 18 levels = 54.
+
+## 06-sleep-pod.png
+
+- Route: ChatGPT in user's Chrome, same chat as 01–05. Date 2026-10-31. Attempts: 1. Download name: `Crescent Moon Rooftop Adventure.png`.
+
+**Prompt (exact):**
+
+> Same game, same art style, landscape 16:9: an in-game screenshot. Evening on a flat rooftop in Jerusalem (old stone city, domes and walls below, on the tiny planet with a curved horizon); the Sun has just set, the orange twilight band crosses the planet, a thin crescent Moon low in the west. Tzila has unfolded a cosy egg-shaped sleep pod from her backpack (white shell, coral trim, a round glass hatch, blanket inside) and stands beside it. Bottom centre: a chunky rounded Hebrew panel titled 'תא שינה' with a big number stepper showing '7' and a toggle 'שעות / ימים' set to 'ימים', a big glowing commit button 'לישון!' and a small note 'אי אפשר לבטל'. Top left: a round picture-in-picture inset from space showing the Sun, the Earth and the Moon's orbit (read-only, no handles). Top right: level name 'שלב 15: מופעי הירח', stars, a photo order card with a small strip of 8 moon phase thumbnails, three of them already filled with Polaroids. Bottom right: the big round camera shutter button. Polished premium 3D indie game look, like Super Mario Galaxy meets Outer Wilds and Solar Ash: a tiny jewel-box planet with real 3D depth, curved horizon, crisp lighting, rim light, soft bloom. NOT flat vector art, NOT a worksheet. Hebrew right-to-left game HUD with chunky rounded panels, Rubik-like font, readable at a glance. Exciting, something a 13-year-old would want to play.
+
+**What to copy:**
+- The sleep pod: upright-ish white egg shell with coral trim and a coral base ring, one big round glass hatch swung open, coral quilt + pillow + tiny plush inside, warm interior glow. Tzila stands beside it, same model as 01–05. (The Tripo `sleep_pod.glb` matches this closely, hatch facing +Z.)
+- The commit panel, bottom centre: title pill `תא שינה` with a bed icon, helper line `בחרי לכמה זמן לישון ולקדם את הזמן בעולם` (good natural Hebrew, usable as-is), a big number stepper `‹ 7 ›`, a two-way toggle `שעות / ימים` with `ימים` lit blue, a big glowing orange `לישון!` button with a bed icon, and the red warning line `אי אפשר לבטל`. This is the HUD target for the sleep pod.
+- Evening rooftop in Jerusalem: limestone walls and domes below, cypresses, warm window lights, the orange twilight band along the curved horizon, a thin crescent Moon low over the twilight.
+- Photo-order card top right with a strip of 8 phase slots, 3 filled with starred Polaroids, empty dashed slots for the rest.
+- PiP top left is a read-only oval inset with no handles, as the revision requires.
+
+**What's off:**
+- Level pill renders `שלב :15 מופעי הירח` (bidi colon flip again).
+- The PiP draws the Moon on the Earth's orbit around the Sun (Sun–Earth–Moon on one big ellipse). The Moon's orbit must circle the Earth; the inset should show a small Moon orbit around the Earth.
+- The 8 phase thumbnails in the strip aren't in a real phase order (several near-identical gibbous icons, the crescents face inconsistently). The game's phase order is authoritative.
+- The Dome of the Rock is the dominant landmark. Keep the Old City generic (walls, domes, limestone) and follow the content plan for which landmark is shown.
+- Extras not in the brief: a sleeping cat, a telescope on a tripod, coffee mugs. Harmless set dressing, but the telescope can be confused with Tzila's camera tripod.
+
+## 07-calendar-train.png
+
+- Route: ChatGPT in user's Chrome, same chat. Date 2026-10-31. Attempts: 1. Download name: `Midnight Sun Railway Adventure.png`.
+
+**Prompt (exact):**
+
+> Same game, same art style, landscape 16:9: an in-game screenshot. A small whimsical 'calendar train' station on a snowy hill in Lapland on the tiny planet: a little steam locomotive with a calendar-page chimney waits on a ring-shaped track that floats around the planet; Tzila stands at a ticket booth. Bottom centre: a Hebrew timetable board 'רכבת הלוח' listing destination dates as big ticket stubs: '21 במרץ', '21 ביוני', '23 בספטמבר', '22 בדצמבר', each with a tiny Earth-and-Sun icon showing the tilted axis; a counter 'כרטיסים: 1' and a note 'כרטיס לכיוון אחד'. Top left: the round orbit inset showing Earth's current position (read-only). Top right: 'שלב 8: שמש חצות', stars, photo order card 'צלמי: השמש מעל האופק בחצות'. A curious polar bear peeks from behind a snowy rock. Polished premium 3D indie game look, like Super Mario Galaxy meets Outer Wilds and Solar Ash: a tiny jewel-box planet with real 3D depth, curved horizon, crisp lighting, rim light, soft bloom. NOT flat vector art, NOT a worksheet. Hebrew right-to-left game HUD with chunky rounded panels, Rubik-like font, readable at a glance. Exciting, something a 13-year-old would want to play.
+
+**What to copy:**
+- The calendar-train ticket board, bottom centre: snowy wooden frame with a `רכבת הלוח` header plaque, helper line, four big ticket stubs read right-to-left `21 במרץ`, `21 ביוני`, `23 בספטמבר`, `22 בדצמבר`, each with a little Earth-and-Sun picture and a season icon (flower, sun, leaf, snowflake), the selected stub outlined in glowing blue, round arrow buttons outside, and a pill `כרטיסים: 1` with the note `כרטיס לכיוון אחד`. This is the HUD target for the train.
+- The locomotive: dark steam engine with brass trim, a round `רכבת הלוח` nameplate on the smokebox, red cow-catcher, lamps, and a chimney puffing tear-off calendar pages (`21 יוני`). Red carriages behind it. (The Tripo `locomotive.glb` is a brighter teal/red toy version; its chimney is a plain stack with a steam puff, not calendar pages.)
+- Station kiosk at left with a `רכבת הלוח` sign, a big station clock and lanterns; Tzila (with a small suitcase) waits at the counter.
+- Polar bear cub peeking from behind a snowy rock at right, same cartoon bear as 02.
+- Midnight-sun mood: the Sun on the horizon over water, aurora hints, a curved snowy horizon.
+- PiP orbit inset top left, read-only, labelling the four dates with their seasons (`שוויון`, `הקיץ`, `החורף`).
+
+**What's off:**
+- Level pill `שלב :8 שמש חצות` (bidi colon flip).
+- The track runs along the ground around the hill and out of frame, not as a ring floating around the planet.
+- PiP: the Earth icons show no axis tilt, so June and December look identical. Draw the tilted axis (fixed direction in space) at every position.
+- The Earth-and-Sun icons on the four tickets are all the same picture; only the season emoji differs. Each ticket should show that date's tilt geometry.
+- Not in the brief: a human Santa-like ticket seller in the booth (no human NPCs are planned; the booth can be empty or staffed by a robot), and an extra `מסלול שנתי` signpost.
+- Tzila's back shows the two solar panels as a large backpack. That's fine, but they read bigger than in 01.

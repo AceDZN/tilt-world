@@ -161,7 +161,7 @@ test('spring/neap tides are not in the Workbook module: the L16 hint labels them
   assert.match(lvl(16).hint ?? '', /העשרה/);
 });
 
-test('spring/neap tides in the L16 failure line are labelled העשרה', { todo: 'REVIEW.md E16b: add (העשרה) to the wave explanation' }, () => {
+test('spring/neap tides in the L16 failure line are labelled העשרה', () => {
   const l16 = lvl(16);
   const f = { kind: 'wave' as const, lat: 49.6, lon: -1.5, utc: 0, L: 0, moonAge: 0, localTime: 0 };
   const text = l16.explain(f);
@@ -169,7 +169,7 @@ test('spring/neap tides in the L16 failure line are labelled העשרה', { todo
 });
 
 // ------------------------------------------------------------------ known text bugs (REVIEW.md E)
-// Marked `todo` while the strings are unfixed; drop the `todo` once levels.ts is updated.
+// Fixed in levels.ts; kept as regression tests.
 
 const ctx = (over: Partial<ShotCtx>): ShotCtx => ({
   lat: 0,
@@ -190,7 +190,7 @@ const ctx = (over: Partial<ShotCtx>): ShotCtx => ({
   ...over,
 });
 
-test('L17 off-node message is grammatical in both directions', { todo: 'REVIEW.md E17a: "מעלשמש"' }, () => {
+test('L17 off-node message is grammatical in both directions', () => {
   const check = lvl(17).shots[0].check;
   for (const L of [100, 300]) {
     const r = check(ctx({ L, moonAge: 0 }));
@@ -202,7 +202,7 @@ test('L17 off-node message is grammatical in both directions', { todo: 'REVIEW.m
   }
 });
 
-test('L8 midnight message never says "-0° below the horizon"', { todo: 'REVIEW.md E8a' }, () => {
+test('L8 midnight message never says "-0° below the horizon"', () => {
   const check = lvl(8).shots[0].check;
   const cabin = lvl(8).places.find((p) => p.id === 'cabin')!;
   for (const elevation of [0.2, 0, -0.3]) {
@@ -211,7 +211,7 @@ test('L8 midnight message never says "-0° below the horizon"', { todo: 'REVIEW.
   }
 });
 
-test('L16 brief does not read as "half the path"', { todo: 'REVIEW.md E16a: "חצי את" → "עברי בשביל"' }, () => {
+test('L16 brief does not read as "half the path"', () => {
   assert.doesNotMatch(lvl(16).brief, /^חצי את/);
 });
 

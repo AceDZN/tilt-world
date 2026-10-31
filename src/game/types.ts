@@ -156,7 +156,7 @@ export type SpecialSpec =
   | { kind: 'dream'; afterShots: string[] }
   | { kind: 'causeway'; from: { lat: number; lon: number }; to: { lat: number; lon: number }; tideAmp: number; openBelow: number; width: number }
   | { kind: 'bear'; place: string }
-  | { kind: 'impossible'; shotId: string }
+  | { kind: 'impossible'; shotId: string; /** Declaring counts only after this shot is in the album. */ after?: string }
   | { kind: 'whereami'; rounds: { lat: number; lon: number }[] };
 
 export const GEAR_NAMES = ['כובע שמש', 'מעיל', 'פרקה'];

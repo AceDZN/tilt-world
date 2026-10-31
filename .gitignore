@@ -6,3 +6,5 @@ playwright-report
 *.log
 scratch/
 assets-src/nasa/
+assets-src/tripo/fuji_raw.glb
+assets-src/tripo/greenhouse_raw.glb
