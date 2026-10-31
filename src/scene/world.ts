@@ -130,7 +130,8 @@ function cap(lat: number, lon: number, radDeg: number, r: number, mat: THREE.Mat
   return m;
 }
 
-const PLACE_MODELS: Partial<Record<Place['kind'], { model: ModelName; h: number }>> = {
+// sink: fraction of the model's height buried under the ground (the mountain mesh stands on a square plinth)
+const PLACE_MODELS: Partial<Record<Place['kind'], { model: ModelName; h: number; sink?: number }>> = {
   city: { model: 'city_gate', h: 0.7 },
   walls: { model: 'city_gate', h: 0.7 },
   cabin: { model: 'lapland_cabin', h: 0.65 },
@@ -138,7 +139,7 @@ const PLACE_MODELS: Partial<Record<Place['kind'], { model: ModelName; h: number 
   beach: { model: 'palm', h: 0.7 },
   station: { model: 'locomotive', h: 0.55 },
   'causeway-end': { model: 'lighthouse', h: 0.9 },
-  snow: { model: 'fuji', h: 0.9 },
+  snow: { model: 'fuji', h: 1.1, sink: 0.22 },
   hill: { model: 'stone_wall', h: 0.3 },
   stones: { model: 'stone_circle', h: 0.32 },
   roof: { model: 'stone_wall', h: 0.35 },
@@ -150,6 +151,8 @@ export interface ViewState {
   reducedMotion: boolean;
   sleeping: number; // 0..1 sleep pod animation
   running: boolean;
+  /** A panel covers the lower screen: frame Tzila closer and higher so she stays in view. */
+  framed?: boolean;
 }
 
 export class World {
@@ -173,6 +176,13 @@ export class World {
   private tripod: THREE.Group;
   private pod: THREE.Group;
   private bear: { obj: THREE.Group; mixer: THREE.AnimationMixer | null } | null = null;
+  /** Landmarks and labels that fade when Tzila stands among them, so they never hide her or the Sun. */
+  private nearFade: { obj: THREE.Object3D; at: THREE.Vector3 }[] = [];
+  private tmpSeg = new THREE.Vector3();
+  /** "Z z z" over Tzila when her battery dies, and over city places while it is night there. */
+  private zzz = labelSprite('Z z z', '#cfe0ff', 'rgba(14,20,48,0.55)');
+  private cityZzz: { obj: THREE.Sprite; up: THREE.Vector3 }[] = [];
+  private tmpOcc = new THREE.Vector3();
   private water: THREE.Mesh | null = null;
   private camPos = new THREE.Vector3(0, 0, 40);
   private camLook = new THREE.Vector3();
@@ -186,6 +196,9 @@ export class World {
     this.scene.background = new THREE.Color(0x02030a);
     this.planet = createPlanet(tex);
     this.scene.add(this.planet.group);
+    this.zzz.visible = false;
+    this.zzz.scale.multiplyScalar(1.4);
+    this.scene.add(this.zzz);
     this.scene.add(this.sunLight, this.sunLight.target, this.fill);
     this.camera.add(this.headlamp);
     this.headlamp.position.set(0, 0.6, 0.4);
@@ -267,6 +280,8 @@ export class World {
     this.tokenObjs = [];
     this.water = null;
     this.bear = null;
+    this.nearFade = [];
+    this.cityZzz = [];
     const u = this.planet.uniforms;
     u.gridOn.value = 0;
     u.hintMeridian.value = -999;
@@ -287,13 +302,15 @@ export class World {
         const m = instance(spec.model, spec.h).obj;
         // Stand the landmark just inside the zone's far (north) edge so Tzila can walk up to it.
         const off = p.kind === 'stones' ? 0 : Math.min(p.radius * 0.7, 2.2);
-        placeOnPlanet(m, p.lat + off, p.lon, 180);
+        placeOnPlanet(m, p.lat + off, p.lon, 180, -spec.h * (spec.sink ?? 0));
         this.props.add(m);
+        this.nearFade.push({ obj: m, at: m.position.clone().multiplyScalar(1 + (spec.h * 0.5) / PLANET_R) });
         topH = spec.h;
         if (p.kind === 'station') {
           const booth = instance('ticket_booth', 0.42).obj;
           placeOnPlanet(booth, p.lat + off * 0.3, p.lon + off / Math.cos((p.lat * Math.PI) / 180), 230);
           this.props.add(booth);
+          this.nearFade.push({ obj: booth, at: booth.position.clone().multiplyScalar(1 + 0.2 / PLANET_R) });
         }
         if (p.kind === 'stones') {
           m.traverse((o) => {
@@ -307,6 +324,14 @@ export class World {
       const label = labelSprite(p.name);
       surfacePoint(p.lat + (spec && p.kind !== 'stones' ? Math.min(p.radius * 0.7, 2.2) : 0), p.lon, topH + 0.2, label.position);
       this.props.add(label);
+      this.nearFade.push({ obj: label, at: label.position.clone().setLength(PLANET_R) });
+      if (p.kind === 'city') {
+        const z = labelSprite('Z z z', '#cfe0ff', 'rgba(14,20,48,0.55)');
+        z.scale.multiplyScalar(0.7);
+        z.position.copy(label.position).multiplyScalar(1 + 0.22 / PLANET_R);
+        this.props.add(z);
+        this.cityZzz.push({ obj: z, up: label.position.clone().normalize() });
+      }
     }
 
     for (const lat of level.rails ?? []) this.props.add(latitudeRing(lat, 0xffb84a));
@@ -339,7 +364,8 @@ export class World {
       const cabin = level.places.find((p) => p.id === sp.place);
       if (cabin) {
         const b = instance('polar_bear', 0.5);
-        placeOnPlanet(b.obj, cabin.lat - 0.9, cabin.lon + 1.4, 300);
+        // beside the cabin, west of it, so it never stands on Tzila's photo spot
+        placeOnPlanet(b.obj, cabin.lat + 1.6, cabin.lon - 4.5, 120);
         let mixer: THREE.AnimationMixer | null = null;
         if (b.animations.length) {
           mixer = new THREE.AnimationMixer(b.obj);
@@ -471,10 +497,18 @@ export class World {
       const open = tide <= lvl.special.openBelow;
       (this.water.material as THREE.MeshStandardMaterial).opacity = open ? 0.0 : 0.82;
     }
+    // sleepy cities and a sleeping robot
+    for (const z of this.cityZzz) z.obj.visible = z.up.dot(sun) < -0.1;
+    const asleep = st.mode === 'failed' && st.fail?.kind === 'battery';
+    this.zzz.visible = asleep;
+    if (asleep) {
+      const upv = this.player.position.clone().normalize();
+      this.zzz.position.copy(this.player.position).addScaledVector(upv, 0.5 + (view.reducedMotion ? 0 : Math.sin(t * 2) * 0.05));
+    }
     // bear: shows up when it is dark at the cabin
     if (this.bear) {
       const bp = new THREE.Vector3().copy(this.bear.obj.position).normalize();
-      this.bear.obj.visible = bp.dot(sun) < 0.05;
+      this.bear.obj.visible = bp.dot(sun) < -0.02;
       this.bear.mixer?.update(dt);
     }
 
@@ -523,6 +557,24 @@ export class World {
       this.pod.scale.setScalar(Math.max(0.001, s));
     }
 
+    // Once Tzila has arrived, the landmark and its label step aside (the zone ring stays), so they never
+    // stand between the camera and her, or between her and a low Sun.
+    const cam = this.camera.position;
+    const seg = this.tmpSeg.subVectors(this.player.position, cam);
+    const segLen2 = seg.lengthSq();
+    for (const f of this.nearFade) {
+      const d = f.at.distanceTo(this.player.position);
+      let k = THREE.MathUtils.smoothstep(d, 0.6, 0.9);
+      // ...and anything standing on the camera's line to her
+      const t = this.tmpOcc.subVectors(f.at, cam).dot(seg) / Math.max(1e-6, segLen2);
+      if (t > 0 && t < 1) {
+        const off = this.tmpOcc.subVectors(f.at, cam).addScaledVector(seg, -t).length();
+        k = Math.min(k, THREE.MathUtils.smoothstep(off, 0.35, 0.7));
+      }
+      if ((f.obj as THREE.Sprite).isSprite) ((f.obj as THREE.Sprite).material as THREE.SpriteMaterial).opacity = 0.1 + 0.9 * k;
+      else f.obj.visible = k > 0.3;
+    }
+
     this.updateCamera(pos, fwd, view, dt);
   }
 
@@ -535,8 +587,13 @@ export class World {
       look = new THREE.Vector3();
     } else {
       const base = up.clone().multiplyScalar(PLANET_R);
-      want = base.clone().addScaledVector(up, 1.9).addScaledVector(fwd, -2.6);
-      look = base.clone().addScaledVector(up, 0.2).addScaledVector(fwd, 2.4);
+      if (view.framed) {
+        want = base.clone().addScaledVector(up, 0.75).addScaledVector(fwd, -1.7);
+        look = base.clone().addScaledVector(up, -0.45).addScaledVector(fwd, 0.5);
+      } else {
+        want = base.clone().addScaledVector(up, 1.9).addScaledVector(fwd, -2.6);
+        look = base.clone().addScaledVector(up, 0.2).addScaledVector(fwd, 2.4);
+      }
     }
     const k = view.reducedMotion ? 1 : 1 - Math.exp(-dt * 6);
     this.camPos.lerp(want, k);
@@ -581,16 +638,23 @@ export class World {
   }
 }
 
-/** Direction to draw a sky body so its elevation is measured from the visible limb, not the true horizontal. */
+/** Direction to draw a sky body so its elevation is measured from the limb the camera actually sees,
+ *  not the true horizontal: elevation 0 sits on the limb, 90° stays at the zenith. */
 function skyDir(up: THREE.Vector3, dir: THREE.Vector3, cam: THREE.Vector3): THREE.Vector3 {
   const u = up.clone().normalize();
   const e = Math.asin(THREE.MathUtils.clamp(u.dot(dir), -1, 1));
   const h = dir.clone().addScaledVector(u, -u.dot(dir));
   if (h.lengthSq() < 1e-8) return dir.clone();
   h.normalize();
+  // the tangent ray from the camera to the sphere, in the vertical plane toward the body
+  const c = cam.clone().normalize();
+  const hc = h.clone().addScaledVector(c, -c.dot(h));
+  if (hc.lengthSq() < 1e-8) return dir.clone();
+  hc.normalize();
   const dip = Math.acos(Math.min(1, PLANET_R / Math.max(PLANET_R + 0.01, cam.length())));
-  // full dip at the horizon, fading to none at the zenith
-  const ev = e - 0.72 * dip * (1 - Math.abs(e) / (Math.PI / 2));
+  const limb = c.multiplyScalar(-Math.sin(dip)).addScaledVector(hc, Math.cos(dip));
+  const eL = Math.asin(THREE.MathUtils.clamp(u.dot(limb), -1, 1));
+  const ev = e >= 0 ? eL + (e * (Math.PI / 2 - eL)) / (Math.PI / 2) : eL + e;
   return h.multiplyScalar(Math.cos(ev)).addScaledVector(u, Math.sin(ev));
 }
 

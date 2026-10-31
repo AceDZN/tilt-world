@@ -597,7 +597,8 @@ function advance(dt: number) {
   }
   sound.setGrind(!!st && st.grinding !== null && running && st.mode === 'play');
   const sleeping = transition && transition.kind !== 'ticket' ? Math.min(0.999, transition.t / transition.dur) : 0;
-  world.update(st, { utc: displayUtc, cameraMode, reducedMotion: saved.reduced, sleeping, running: running && st.mode === 'play' }, dt, realT);
+  const framed = !hud.el('sleepPanel').hidden || !hud.el('trainPanel').hidden;
+  world.update(st, { utc: displayUtc, cameraMode, reducedMotion: saved.reduced, sleeping, running: running && st.mode === 'play', framed }, dt, realT);
   if (gridOn) world.planet.uniforms.gridOn.value = 1;
   inset.update(st.L, st.moonAge, saved.reduced ? 0 : dt);
   updateHud();
