@@ -51,7 +51,15 @@ npm run smoke
 
 Browser smoke test (needs the dev server). It opens every level and a random quest in headless Chromium, checks that the sleep and train panels freeze the clock, plays three levels to the win card with the test bot, and fails on any console error. Frames go to the git-ignored `scratch/smoke/`.
 
-URL options: `?level=N` opens level N directly; `?all` unlocks every level.
+URL options: `?level=N` opens level N directly (even when locked); `?all` unlocks every level.
+
+## Workbook embed
+
+The game ships in the workbook geography games app (catalog entry: `workbook/LEVELS.md`).
+
+- **Bridge:** `src/host.ts` posts `ready`, `level-start` and `level-complete` to a `*.workbook.co.il` parent; it posts nothing when the game runs on its own.
+- **Embed test:** run `npm run build`, then `npm run test:embed`.
+- **Poster:** `npm run poster` writes `workbook/poster.jpg`, which is git-ignored.
 
 ## Controls
 

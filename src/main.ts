@@ -16,6 +16,7 @@ import { OrbitInset } from './scene/inset';
 import { Hud, hhmm, type HudAction } from './ui/hud';
 import { Controls } from './input';
 import { Sound } from './audio';
+import { initHost, parseLevelParam, postToHost } from './host';
 
 const BASE = import.meta.env.BASE_URL;
 const DT = 1 / 60;
@@ -107,8 +108,12 @@ async function boot() {
   inset = new OrbitInset(day);
   loadingEl.remove();
   resize();
-  const lv = Number(params.get('level'));
-  if (lv >= 1 && lv <= LEVELS.length) startLevel(lv);
+  // the workbook player hears `ready` after the first rendered frame, then the deep-linked level
+  render();
+  hostReady = true;
+  postToHost({ type: 'ready' });
+  const lv = parseLevelParam(location.search, LEVELS.length);
+  if (lv !== null) startLevel(lv + 1);
   else showMenu();
   const touch = hud.el('touch');
   if (matchMedia('(pointer: coarse)').matches) touch.hidden = false;
@@ -152,8 +157,15 @@ function startQuest() {
   startLevelDef(q.level);
 }
 
+// workbook bridge: authored levels only (random quests have ids from 100 up)
+initHost('tilt-world');
+let hostReady = false;
+let levelOpenedAt = 0;
+
 function startLevelDef(level: LevelDef) {
   const id = level.id;
+  levelOpenedAt = performance.now();
+  if (hostReady && id <= LEVELS.length) postToHost({ type: 'level-start', level: id });
   st = createSim(level);
   screen = 'play';
   paused = false;
@@ -491,6 +503,7 @@ function showResult() {
     if (lvl.id < 100) {
       saved.stars[lvl.id] = Math.max(saved.stars[lvl.id] ?? 0, st.stars);
       persist();
+      postToHost({ type: 'level-complete', level: lvl.id, stars: st.stars, durationMs: Math.round(performance.now() - levelOpenedAt) });
     }
     const par = lvl.parCommits ?? 99;
     const commits = st.ticketsUsed + st.sleeps;
